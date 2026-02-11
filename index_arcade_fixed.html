@@ -1,0 +1,802 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Enclose.horse – Hay Tracker Dashboard</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+  <style>
+    :root{
+      /* sampled from your screenshot */
+      --grass:#1B6B3A;
+      --water:#0C3751;
+      --water2:#0A2E44;
+      --hay:#C1AD54;
+      --hay2:#E3B34C;
+      --stone:#B9B9B9;
+      --ink:#000000;
+
+      --text:#ffffff;
+      --muted: rgba(255,255,255,.75);
+      --accent:#8be9fd;
+
+      --good:#22c55e;
+      --warn:#f59e0b;
+      --bad:#ef4444;
+    }
+
+    *{box-sizing:border-box}
+
+    body{
+      margin:0;
+      font-family:'Press Start 2P', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+      color:var(--text);
+      background:
+        linear-gradient(90deg, rgba(255,255,255,.06) 1px, transparent 1px),
+        linear-gradient(rgba(255,255,255,.06) 1px, transparent 1px),
+        radial-gradient(circle at 20% 10%, rgba(255,255,255,.05) 0 1px, transparent 2px),
+        radial-gradient(circle at 70% 35%, rgba(255,255,255,.04) 0 1px, transparent 2px),
+        radial-gradient(circle at 40% 85%, rgba(255,255,255,.04) 0 1px, transparent 2px),
+        var(--grass);
+      background-size: 32px 32px, 32px 32px, 18px 18px, 20px 20px, 22px 22px, auto;
+      image-rendering: pixelated;
+    }
+
+    header{
+      position:sticky; top:0;
+      z-index:10;
+      background: var(--grass);
+      border-bottom: 4px solid var(--ink);
+      box-shadow: 0 6px 0 rgba(0,0,0,.35);
+    }
+
+    .wrap{max-width:1100px;margin:0 auto;padding:18px 18px 28px}
+
+    .grid{display:grid;grid-template-columns:repeat(12,1fr);gap:14px;margin-top:16px;}
+
+    .toprow{display:flex;gap:14px;flex-wrap:wrap;align-items:center;justify-content:space-between}
+
+    .brand{display:flex;gap:12px;align-items:center}
+    .brand h1{
+      font-size:14px;
+      margin:0;
+      letter-spacing:2px;
+      text-transform:lowercase;
+    }
+    .brand .sub{
+      font-size:9px;
+      color:#ffe066;
+      margin-top:6px;
+      line-height:1.4;
+    }
+
+    /* Pixel horse sprite (simple inline-block) */
+    .logo{
+      width:44px;height:44px;
+      border:4px solid var(--ink);
+      box-shadow: 6px 6px 0 var(--ink);
+      background:
+        linear-gradient(90deg, rgba(255,255,255,.10) 1px, transparent 1px),
+        linear-gradient(rgba(255,255,255,.10) 1px, transparent 1px),
+        var(--water);
+      background-size: 6px 6px, 6px 6px, auto;
+      display:grid;place-items:center;
+      border-radius:0;
+      user-select:none;
+      position:relative;
+      overflow:hidden;
+    }
+    .logo .horse{
+      width:22px;height:22px;
+      image-rendering: pixelated;
+      animation: bob 1.6s ease-in-out infinite;
+      filter: drop-shadow(2px 2px 0 rgba(0,0,0,.65));
+    }
+    @keyframes bob{
+      0%,100%{transform:translateY(0)}
+      50%{transform:translateY(-2px)}
+    }
+
+    /* Controls */
+    .controls{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+
+    select, button, input[type="file"]{
+      font-family:'Press Start 2P', monospace;
+      font-size:9px;
+      background:#ffffff;
+      color:#000;
+      border:3px solid var(--ink);
+      border-radius:0;
+      padding:10px 10px;
+      outline:none;
+      box-shadow:4px 4px 0 var(--ink);
+    }
+    select{padding-right:28px}
+    button{cursor:pointer}
+    button.primary{
+      background: var(--hay2);
+    }
+    button:hover, select:hover{
+      filter: brightness(1.03);
+    }
+    button:active{
+      transform:translate(4px,4px);
+      box-shadow:0 0 0 var(--ink);
+    }
+    label.small.muted{
+      font-size:9px;
+      color: rgba(255,255,255,.85);
+    }
+
+    /* Cards become water panels */
+    .card{
+      background: linear-gradient(180deg, var(--water), var(--water2));
+      border:4px solid var(--ink);
+      border-radius:0;
+      padding:18px;
+      box-shadow:8px 8px 0 var(--ink);
+    }
+    .card h2{
+      margin:0 0 14px;
+      font-size:10px;
+      color: var(--accent);
+      letter-spacing:1px;
+      text-transform:uppercase;
+    }
+
+    /* KPI cards become hay tiles */
+    .kpis{display:flex;gap:14px;flex-wrap:wrap}
+    .kpi{
+      flex:1 1 220px;
+      padding:16px 14px;
+      border-radius:0;
+      border:4px solid var(--ink);
+      box-shadow:6px 6px 0 var(--ink);
+      background:
+        repeating-linear-gradient(0deg, rgba(0,0,0,.12) 0 1px, transparent 1px 7px),
+        repeating-linear-gradient(90deg, rgba(0,0,0,.08) 0 1px, transparent 1px 10px),
+        linear-gradient(180deg, var(--hay2), var(--hay));
+      color:#000;
+      position:relative;
+      overflow:hidden;
+    }
+    .kpi::after{
+      content:"";
+      position:absolute; inset:-40px -40px auto auto;
+      width:120px;height:120px;
+      background: radial-gradient(circle at 35% 35%, rgba(255,255,255,.20), transparent 55%);
+      transform: rotate(20deg);
+      pointer-events:none;
+    }
+    .kpi.leader{
+      background:
+        repeating-linear-gradient(0deg, rgba(0,0,0,.12) 0 1px, transparent 1px 7px),
+        repeating-linear-gradient(90deg, rgba(0,0,0,.08) 0 1px, transparent 1px 10px),
+        linear-gradient(180deg, #ffd166, var(--hay2));
+    }
+
+    .kpi .name{
+      display:flex;gap:10px;align-items:center;
+      font-weight:900;
+      font-size:9px;
+      letter-spacing:1px;
+    }
+    .kpi .val{
+      font-size:18px;
+      font-weight:900;
+      margin-top:10px;
+      font-variant-numeric: tabular-nums;
+    }
+    .kpi .delta{
+      font-size:8px;
+      margin-top:8px;
+      opacity:.85;
+      line-height:1.35;
+    }
+
+    .pill{
+      font-size:8px;
+      padding:4px 7px;
+      border-radius:0;
+      border:2px solid var(--ink);
+      background:#fff;
+      color:#000;
+      letter-spacing:1px;
+    }
+
+    /* Tags */
+    .tag{
+      font-size:8px;
+      padding:4px 7px;
+      border-radius:0;
+      border:2px solid var(--ink);
+      color:#000;
+      background:#fff;
+      display:inline-block;
+    }
+
+    /* Tables */
+    table{
+      width:100%;
+      border-collapse:collapse;
+      border:4px solid var(--ink);
+      border-radius:0;
+      background:#fff;
+      overflow:hidden;
+    }
+    thead th{
+      text-align:left;
+      font-size:9px;
+      color:#000;
+      background: var(--hay2);
+      border-bottom:4px solid var(--ink);
+      padding:10px;
+      position:sticky; top:0;
+    }
+    tbody td{
+      padding:9px 10px;
+      font-size:9px;
+      color:#000;
+      border-top:2px solid rgba(0,0,0,.22);
+    }
+    tbody tr:nth-child(even) td{
+      background:#f7f7f7;
+    }
+    td.num{text-align:right;font-variant-numeric: tabular-nums}
+
+    /* Bars -> hay fill */
+    .barrow{display:flex;gap:10px;align-items:center}
+    .bar{
+      flex:1;height:12px;
+      background:#e6e6e6;
+      border:2px solid var(--ink);
+      border-radius:0;
+      overflow:hidden;
+    }
+    .bar > span{
+      display:block;height:100%;
+      width:0%;
+      background: linear-gradient(180deg, #ffe08a, var(--hay2));
+      border-right:2px solid rgba(0,0,0,.25);
+    }
+
+    .legend{display:flex;gap:10px;flex-wrap:wrap;margin-top:12px}
+    .dot{width:10px;height:10px;border-radius:0;display:inline-block;margin-right:6px;border:2px solid var(--ink)}
+    .good{background:var(--good)}
+    .warn{background:var(--warn)}
+    .bad{background:var(--bad)}
+    .muted{color:rgba(255,255,255,.8)}
+    .small{font-size:9px}
+
+    .data-grid{overflow:auto;max-height:520px}
+
+    .editable{
+      background: transparent;
+      border:none;
+      color:#000;
+      width:100%;
+      text-align:right;
+      font: inherit;
+      outline:none;
+    }
+    .editable.left{text-align:left}
+
+    .cell{
+      border-radius:0;
+      padding:6px 8px;
+      border:2px solid rgba(0,0,0,.25);
+      background:#fff;
+    }
+
+    .footer{
+      margin-top:14px;
+      color: rgba(255,255,255,.8);
+      font-size:9px;
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+      justify-content:space-between;
+      align-items:center;
+      line-height:1.35;
+    }
+    .nowrap{white-space:nowrap}
+
+    /* Small gem icon */
+    .gem{
+      width:16px;height:16px;
+      display:inline-block;
+      image-rendering: pixelated;
+      filter: drop-shadow(2px 2px 0 rgba(0,0,0,.55));
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="wrap">
+      <div class="toprow">
+        <div class="brand">
+          <div class="logo" title="Enclose.horse"><svg class="horse" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg" aria-label="horse">
+  <rect x="6" y="3" width="6" height="4" fill="#ffffff"/>
+  <rect x="4" y="4" width="2" height="3" fill="#ffffff"/>
+  <rect x="11" y="7" width="2" height="4" fill="#ffffff"/>
+  <rect x="7" y="7" width="2" height="4" fill="#ffffff"/>
+  <rect x="5" y="9" width="2" height="5" fill="#ffffff"/>
+  <rect x="10" y="9" width="2" height="5" fill="#ffffff"/>
+  <rect x="12" y="4" width="2" height="2" fill="#ffffff"/>
+</svg></div>
+          <div>
+            <h1>enclose.horse · hay tracker</h1>
+            <div class="sub">Standalone dashboard · auto totals · editable rows</div>
+          </div>
+        </div>
+
+        <div class="controls">
+          <label class="small muted">View:</label>
+          <select id="weekFilter" title="Filter by week">
+            <option value="all">All Weeks</option>
+          </select>
+          <button class="primary" id="addRowBtn" title="Add a new day row">+ Add Day</button>
+          <button id="exportBtn" title="Download your data as CSV">Export CSV</button>
+          <button id="resetBtn" title="Reset back to the screenshot data">Reset</button>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main class="wrap">
+    <div class="card">
+      <h2>ALL-TIME SCOREBOARD</h2>
+      <div class="kpis" id="kpis"></div>
+      <div class="footer">
+        <div id="leaderLine" class="nowrap"></div>
+        <div class="muted">Tip: edit numbers in the table below — totals update instantly.</div>
+      </div>
+    </div>
+
+    <div class="grid">
+      <div class="card" style="grid-column: span 7;">
+        <h2>WEEKLY TOTALS</h2>
+        <table id="weeklyTable">
+          <thead>
+            <tr>
+              <th style="width:80px;">Week</th>
+              <th>Brian</th>
+              <th>Peter</th>
+              <th>Josh</th>
+              <th style="width:120px;">Leader</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+        <div class="legend small">
+          <span><span class="dot good"></span>≥ 100% of Perfect</span>
+          <span><span class="dot warn"></span>85–99%</span>
+          <span><span class="dot bad"></span>&lt; 85%</span>
+          <span class="muted">Cell color is based on % of Perfect for that day.</span>
+        </div>
+      </div>
+
+      <div class="card" style="grid-column: span 5;">
+        <h2>WEEKLY MOMENTUM (BAR VIEW)</h2>
+        <div id="bars"></div>
+        <div class="footer">
+          <div class="muted">Bars scale to the max week total in the current view.</div>
+        </div>
+      </div>
+
+      <div class="card" style="grid-column: span 12;">
+        <h2>DAY-BY-DAY INPUT (EDITABLE)</h2>
+        <div class="data-grid">
+          <table id="dayTable">
+            <thead>
+              <tr>
+                <th style="width:70px;">Day</th>
+                <th style="width:70px;">Week</th>
+                <th style="width:90px;">Perfect</th>
+                <th>Brian</th>
+                <th>Peter</th>
+                <th>Josh</th>
+                <th style="width:120px;">Notes</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
+        <div class="footer">
+          <div class="muted">Notes are optional; use them to track events, loadouts, etc.</div>
+          <div class="muted">Version: 1.0 (single-file)</div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+<script>
+  // --- Seed data from your screenshot ---
+  const DEFAULT_ROWS = [
+    {day:32, week:1, perfect:82, brian:77, peter:77, josh:77, notes:""},
+    {day:33, week:1, perfect:44, brian:43, peter:35, josh:21, notes:""},
+    {day:34, week:1, perfect:45, brian:42, peter:44, josh:45, notes:""},
+    {day:35, week:1, perfect:60, brian:35, peter:52, josh:47, notes:""},
+    {day:36, week:2, perfect:58, brian:58, peter:58, josh:46, notes:""},
+    {day:37, week:2, perfect:82, brian:76, peter:76, josh:70, notes:""},
+    {day:38, week:2, perfect:77, brian:77, peter:77, josh:77, notes:""},
+    {day:39, week:2, perfect:94, brian:88, peter:94, josh:92, notes:""},
+    {day:40, week:2, perfect:48, brian:47, peter:48, josh:48, notes:""},
+    {day:41, week:2, perfect:70, brian:68, peter:70, josh:70, notes:""},
+    {day:42, week:3, perfect:55, brian:55, peter:53, josh:54, notes:""},
+    {day:43, week:3, perfect:75, brian:75, peter:75, josh:75, notes:""}
+  ];
+
+  const STORE_KEY = "enclose_hay_tracker_rows_v1";
+
+
+  const GEM_SVGS = {
+    Brian: `<svg class="gem" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg">
+      <rect x="6" y="1" width="4" height="2" fill="#7dd3fc"/><rect x="4" y="3" width="8" height="2" fill="#38bdf8"/>
+      <rect x="3" y="5" width="10" height="6" fill="#0ea5e9"/><rect x="4" y="11" width="8" height="2" fill="#38bdf8"/>
+      <rect x="6" y="13" width="4" height="2" fill="#7dd3fc"/><rect x="5" y="6" width="2" height="2" fill="rgba(255,255,255,.55)"/>
+    </svg>`,
+    Peter: `<svg class="gem" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg">
+      <rect x="6" y="1" width="4" height="2" fill="#bbf7d0"/><rect x="4" y="3" width="8" height="2" fill="#4ade80"/>
+      <rect x="3" y="5" width="10" height="6" fill="#22c55e"/><rect x="4" y="11" width="8" height="2" fill="#4ade80"/>
+      <rect x="6" y="13" width="4" height="2" fill="#bbf7d0"/><rect x="5" y="6" width="2" height="2" fill="rgba(255,255,255,.55)"/>
+    </svg>`,
+    Josh: `<svg class="gem" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg">
+      <rect x="6" y="1" width="4" height="2" fill="#fda4af"/><rect x="4" y="3" width="8" height="2" fill="#fb7185"/>
+      <rect x="3" y="5" width="10" height="6" fill="#e11d48"/><rect x="4" y="11" width="8" height="2" fill="#fb7185"/>
+      <rect x="6" y="13" width="4" height="2" fill="#fda4af"/><rect x="5" y="6" width="2" height="2" fill="rgba(255,255,255,.55)"/>
+    </svg>`
+  };
+
+  let _prevTotals = { Brian: 0, Peter: 0, Josh: 0 };
+
+  function animateNumber(el, from, to, ms=650){
+    const start = performance.now();
+    const f = Number(from)||0;
+    const t = Number(to)||0;
+    const easeOut = (p)=>1-Math.pow(1-p,3);
+
+    function step(now){
+      const p = Math.min(1, (now-start)/ms);
+      const v = Math.round(f + (t-f)*easeOut(p));
+      el.textContent = v.toString();
+      if(p<1) requestAnimationFrame(step);
+    }
+    requestAnimationFrame(step);
+  }
+
+
+  const els = {
+    weekFilter: document.getElementById("weekFilter"),
+    kpis: document.getElementById("kpis"),
+    leaderLine: document.getElementById("leaderLine"),
+    weeklyTableBody: document.querySelector("#weeklyTable tbody"),
+    dayTableBody: document.querySelector("#dayTable tbody"),
+    bars: document.getElementById("bars"),
+    addRowBtn: document.getElementById("addRowBtn"),
+    exportBtn: document.getElementById("exportBtn"),
+    resetBtn: document.getElementById("resetBtn"),
+  };
+
+  function loadRows(){
+    try{
+      const raw = localStorage.getItem(STORE_KEY);
+      if(!raw) return structuredClone(DEFAULT_ROWS);
+      const parsed = JSON.parse(raw);
+      if(!Array.isArray(parsed)) return structuredClone(DEFAULT_ROWS);
+      return parsed;
+    }catch(e){
+      return structuredClone(DEFAULT_ROWS);
+    }
+  }
+  function saveRows(rows){
+    localStorage.setItem(STORE_KEY, JSON.stringify(rows));
+  }
+
+  let rows = loadRows();
+
+  function uniqWeeks(rows){
+    return [...new Set(rows.map(r => Number(r.week)).filter(n => Number.isFinite(n)))].sort((a,b)=>a-b);
+  }
+
+  function getFilteredRows(){
+    const f = els.weekFilter.value;
+    if(f === "all") return rows;
+    const w = Number(f);
+    return rows.filter(r => Number(r.week) === w);
+  }
+
+  function sum(list, key){
+    return list.reduce((acc,r)=>acc + (Number(r[key])||0), 0);
+  }
+
+  function formatInt(n){ return (Math.round(n)).toString(); }
+
+  function leaderOfTotals(t){
+    const entries = Object.entries(t);
+    entries.sort((a,b)=>b[1]-a[1]);
+    return entries[0][0];
+  }
+
+  function buildWeekFilter(){
+    const weeks = uniqWeeks(rows);
+    const current = els.weekFilter.value || "all";
+    els.weekFilter.innerHTML = `<option value="all">All Weeks</option>` + weeks.map(w => `<option value="${w}">Week ${w}</option>`).join("");
+    // keep selection if possible
+    const ok = [...els.weekFilter.options].some(o => o.value === current);
+    els.weekFilter.value = ok ? current : "all";
+  }
+
+  function performanceClass(val, perfect){
+    const v = Number(val)||0;
+    const p = Math.max(1, Number(perfect)||0);
+    const ratio = v / p;
+    if(ratio >= 1) return "good";
+    if(ratio >= 0.85) return "warn";
+    return "bad";
+  }
+
+  function renderKPIs(){
+    const data = getFilteredRows();
+    const totals = {
+      Brian: sum(data, "brian"),
+      Peter: sum(data, "peter"),
+      Josh:  sum(data, "josh")
+    };
+    const sorted = Object.entries(totals).sort((a,b)=>b[1]-a[1]);
+    const [firstName, firstVal] = sorted[0];
+    const [secondName, secondVal] = sorted[1];
+    const [thirdName, thirdVal] = sorted[2];
+
+    const viewLabel = (els.weekFilter.value === "all") ? "ALL TIME" : `WEEK ${els.weekFilter.value}`;
+    els.leaderLine.innerHTML = `🏆 <b>${viewLabel} LEADER:</b> <span class="tag">${firstName}</span> · spread <b>${formatInt(firstVal - thirdVal)}</b> hay (1st → 3rd)`;
+
+    const badges = {
+      Brian: GEM_SVGS.Brian,
+      Peter: GEM_SVGS.Peter,
+      Josh:  GEM_SVGS.Josh
+    };
+
+    els.kpis.innerHTML = Object.entries(totals).map(([name,val])=>{
+      const isLeader = name === firstName;
+      const deltaFromLeader = firstVal - val;
+      const deltaLine = isLeader
+        ? `👑 leading by <b>${formatInt(firstVal-secondVal)}</b> over 2nd`
+        : `-${formatInt(deltaFromLeader)} from leader`;
+      return `
+        <div class="kpi ${isLeader ? "leader" : ""}">
+          <div class="name"><span aria-hidden="true">${badges[name]}</span><span>${name}</span> <span class="pill">${viewLabel}</span></div>
+          <div class="val"><span class="score" data-player="${name}">${formatInt(val)}</span></div>
+          <div class="delta">${deltaLine}</div>
+        </div>
+      `;
+    }).join("");
+
+    // tick-up animation
+    document.querySelectorAll('.score').forEach((s)=>{
+      const player = s.getAttribute('data-player');
+      const to = totals[player] ?? 0;
+      const from = _prevTotals[player] ?? 0;
+      animateNumber(s, from, to);
+    });
+    _prevTotals = { ...totals };
+
+  }
+
+  function computeWeeklyTotals(){
+    const filtered = getFilteredRows();
+    const byWeek = new Map();
+    for(const r of filtered){
+      const w = Number(r.week);
+      if(!Number.isFinite(w)) continue;
+      if(!byWeek.has(w)) byWeek.set(w, {week:w, brian:0, peter:0, josh:0});
+      const agg = byWeek.get(w);
+      agg.brian += Number(r.brian)||0;
+      agg.peter += Number(r.peter)||0;
+      agg.josh  += Number(r.josh)||0;
+    }
+    return [...byWeek.values()].sort((a,b)=>a.week-b.week);
+  }
+
+  function renderWeeklyTable(){
+    const weeks = computeWeeklyTotals();
+    els.weeklyTableBody.innerHTML = weeks.map(w=>{
+      const leader = leaderOfTotals({Brian:w.brian, Peter:w.peter, Josh:w.josh});
+      const tag = leader === "Brian" ? "🟦 Brian" : leader === "Peter" ? "🟩 Peter" : "🟧 Josh";
+      return `
+        <tr>
+          <td><b>Week ${w.week}</b></td>
+          <td class="num">${formatInt(w.brian)}</td>
+          <td class="num">${formatInt(w.peter)}</td>
+          <td class="num">${formatInt(w.josh)}</td>
+          <td><span class="tag">${tag}</span></td>
+        </tr>
+      `;
+    }).join("");
+
+    // tick-up animation
+    document.querySelectorAll('.score').forEach((s)=>{
+      const player = s.getAttribute('data-player');
+      const to = totals[player] ?? 0;
+      const from = _prevTotals[player] ?? 0;
+      animateNumber(s, from, to);
+    });
+    _prevTotals = { ...totals };
+
+  }
+
+  function renderBars(){
+    const weeks = computeWeeklyTotals();
+
+    if(!weeks.length){
+      els.bars.innerHTML = `<div class="muted">No data in this view.</div>`;
+      return;
+    }
+
+    // Scale bars against the max total in the current view
+    const max = Math.max(1, ...weeks.flatMap(w => [w.brian, w.peter, w.josh].map(n => Number(n) || 0)));
+
+    const blocks = weeks.map(w=>{
+      const entries = [
+        {name:"Brian", icon:"🟦", val:Number(w.brian)||0},
+        {name:"Peter", icon:"🟩", val:Number(w.peter)||0},
+        {name:"Josh",  icon:"🟧", val:Number(w.josh)||0},
+      ];
+
+      const rowsHtml = entries.map(e=>{
+        // Make sure tiny values still show up (at least a couple pixels)
+        let pct = Math.round((e.val / max) * 100);
+        if(e.val > 0) pct = Math.max(2, pct);
+        return `
+          <div class="barrow" style="margin:10px 0;">
+            <div style="width:90px;" class="small muted">${e.icon} ${e.name}</div>
+            <div class="bar" aria-label="${e.name} week ${w.week} total ${e.val}"><span style="width:${pct}%;"></span></div>
+            <div style="width:70px;text-align:right;" class="small muted">${formatInt(e.val)}</div>
+          </div>
+        `;
+      }).join("");
+
+      // Use a lightweight wrapper that works regardless of grid styling
+      return `
+        <div style="border:3px solid var(--ink); background: rgba(255,255,255,.06); box-shadow:4px 4px 0 var(--ink); padding:10px; margin-bottom:12px;">
+          <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:6px;">
+            <div class="small"><b>Week ${w.week}</b></div>
+            <span class="tag">momentum</span>
+          </div>
+          ${rowsHtml}
+        </div>
+      `;
+    }).join("");
+
+    els.bars.innerHTML = blocks;
+  }
+
+  function renderDayTable(){
+    const data = rows.slice().sort((a,b)=>(Number(a.day)||0)-(Number(b.day)||0));
+    els.dayTableBody.innerHTML = data.map((r, idx)=>{
+      // keep stable reference by using index in the array order
+      const p = Number(r.perfect)||0;
+      const clsB = performanceClass(r.brian, p);
+      const clsP = performanceClass(r.peter, p);
+      const clsJ = performanceClass(r.josh,  p);
+
+      return `
+        <tr data-idx="${idx}">
+          <td class="num"><input class="editable" inputmode="numeric" value="${r.day ?? ""}" data-k="day"></td>
+          <td class="num"><input class="editable" inputmode="numeric" value="${r.week ?? ""}" data-k="week"></td>
+          <td class="num"><input class="editable" inputmode="numeric" value="${r.perfect ?? ""}" data-k="perfect"></td>
+
+          <td>
+            <div class="cell" style="border-color: rgba(255,255,255,.06); background: rgba(255,255,255,.02);">
+              <input class="editable" inputmode="numeric" value="${r.brian ?? ""}" data-k="brian" style="${clsB === "good" ? "color:var(--good)" : clsB === "warn" ? "color:var(--warn)" : "color:var(--bad)"}">
+            </div>
+          </td>
+          <td>
+            <div class="cell">
+              <input class="editable" inputmode="numeric" value="${r.peter ?? ""}" data-k="peter" style="${clsP === "good" ? "color:var(--good)" : clsP === "warn" ? "color:var(--warn)" : "color:var(--bad)"}">
+            </div>
+          </td>
+          <td>
+            <div class="cell">
+              <input class="editable" inputmode="numeric" value="${r.josh ?? ""}" data-k="josh" style="${clsJ === "good" ? "color:var(--good)" : clsJ === "warn" ? "color:var(--warn)" : "color:var(--bad)"}">
+            </div>
+          </td>
+
+          <td><input class="editable editable.left" value="${(r.notes ?? "").replaceAll('"','&quot;')}" data-k="notes"></td>
+        </tr>
+      `;
+    }).join("");
+
+    // tick-up animation
+    document.querySelectorAll('.score').forEach((s)=>{
+      const player = s.getAttribute('data-player');
+      const to = totals[player] ?? 0;
+      const from = _prevTotals[player] ?? 0;
+      animateNumber(s, from, to);
+    });
+    _prevTotals = { ...totals };
+
+
+    // attach one input handler
+    els.dayTableBody.querySelectorAll("input").forEach(inp=>{
+      inp.addEventListener("input", (e)=>{
+        const tr = e.target.closest("tr");
+        const idx = Number(tr?.dataset?.idx);
+        const key = e.target.dataset.k;
+        if(!Number.isFinite(idx) || !key) return;
+
+        let val = e.target.value;
+        if(key !== "notes"){
+          // allow blank, else numeric
+          val = val.trim() === "" ? "" : Number(val);
+        }
+        rows[idx][key] = val;
+
+        saveRows(rows);
+        // re-render computed areas (keep table responsive)
+        buildWeekFilter();
+        renderAll();
+      }, {passive:true});
+    });
+  }
+
+  function renderAll(){
+    renderKPIs();
+    renderWeeklyTable();
+    renderBars();
+    renderDayTable();
+  }
+
+  function addRow(){
+    // pick next day number and current max week
+    const maxDay = Math.max(0, ...rows.map(r=>Number(r.day)||0));
+    const maxWeek = Math.max(1, ...rows.map(r=>Number(r.week)||1));
+    rows.push({day:maxDay+1, week:maxWeek, perfect:"", brian:"", peter:"", josh:"", notes:""});
+    saveRows(rows);
+    buildWeekFilter();
+    renderAll();
+  }
+
+  function reset(){
+    rows = structuredClone(DEFAULT_ROWS);
+    saveRows(rows);
+    buildWeekFilter();
+    renderAll();
+  }
+
+  function exportCSV(){
+    const header = ["day","week","perfect","brian","peter","josh","notes"];
+    const lines = [header.join(",")];
+    for(const r of rows){
+      const row = header.map(k=>{
+        const v = r[k] ?? "";
+        const s = String(v).replaceAll('"','""');
+        return (s.includes(",") || s.includes('"') || s.includes("\n")) ? `"${s}"` : s;
+      }).join(",");
+      lines.push(row);
+    }
+    const blob = new Blob([lines.join("\n")], {type:"text/csv;charset=utf-8"});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "enclose_hay_tracker.csv";
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
+  }
+
+  // Events
+  els.weekFilter.addEventListener("change", ()=>renderAll());
+  els.addRowBtn.addEventListener("click", addRow);
+  els.resetBtn.addEventListener("click", reset);
+  els.exportBtn.addEventListener("click", exportCSV);
+
+  // Init
+  buildWeekFilter();
+  renderAll();
+</script>
+</body>
+</html>
