@@ -1,0 +1,1215 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Enclose.horse – Hay Tracker Dashboard</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Schoolbell&display=swap" rel="stylesheet">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+  <style>
+    :root{
+      --bg:#0b0f17;
+      --panel:#111827;
+      --panel2:#0f172a;
+      --text:#e5e7eb;
+      --muted:#9ca3af;
+      --line:#243041;
+      --accent:#60a5fa;
+      --good:#22c55e;
+      --warn:#f59e0b;
+      --bad:#ef4444;
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji","Segoe UI Emoji";
+      background: radial-gradient(1200px 700px at 20% 0%, rgba(96,165,250,.12), transparent 60%),
+                  radial-gradient(1200px 700px at 100% 20%, rgba(34,197,94,.10), transparent 55%),
+                  var(--bg);
+      color:var(--text);
+    
+  font-family:'Schoolbell', cursive;
+}
+    header{
+      position:sticky; top:0;
+      z-index:10;
+      backdrop-filter: blur(10px);
+      background: rgba(11,15,23,.70);
+      border-bottom: 1px solid rgba(36,48,65,.8);
+    }
+    .wrap{max-width:1100px;margin:0 auto;padding:18px 18px 28px}
+    .toprow{display:flex;gap:14px;flex-wrap:wrap;align-items:center;justify-content:space-between}
+    .brand{display:flex;gap:10px;align-items:center}
+    .logo{
+      width:38px;height:38px;border-radius:12px;
+      background: linear-gradient(135deg, rgba(96,165,250,.9), rgba(34,197,94,.8));
+      display:grid;place-items:center;
+      box-shadow: 0 10px 25px rgba(0,0,0,.35);
+      border:1px solid rgba(255,255,255,.10);
+      user-select:none;
+    }
+    .brand h1{font-size:16px;margin:0;letter-spacing:.6px}
+    .brand .sub{font-size:12px;color:var(--muted);margin-top:2px}
+    .controls{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+    select, button, input[type="file"]{
+      background: rgba(17,24,39,.9);
+      color:var(--text);
+      border:1px solid rgba(36,48,65,.9);
+      border-radius:12px;
+      padding:10px 12px;
+      font-size:13px;
+      outline:none;
+    }
+    button{cursor:pointer}
+    button.primary{
+      border-color: rgba(96,165,250,.7);
+      box-shadow: 0 0 0 0 rgba(96,165,250,.0);
+    }
+    button.primary:hover{box-shadow: 0 0 0 4px rgba(96,165,250,.12)}
+    .grid{
+      display:grid;
+      grid-template-columns: repeat(12, 1fr);
+      gap:14px;
+      margin-top:16px;
+    }
+    .card{
+      background: linear-gradient(180deg, rgba(17,24,39,.92), rgba(15,23,42,.86));
+      border:1px solid rgba(36,48,65,.9);
+      border-radius:18px;
+      padding:14px 14px;
+      box-shadow: 0 15px 35px rgba(0,0,0,.30);
+    }
+    .card h2{margin:0 0 10px;font-size:13px;color:var(--muted);font-weight:600;letter-spacing:.6px}
+    .kpis{display:flex;gap:12px;flex-wrap:wrap}
+    .kpi{
+      flex:1 1 220px;
+      padding:14px;
+      border-radius:16px;
+      border:1px solid rgba(36,48,65,.9);
+      background: rgba(3,7,18,.35);
+      position:relative;
+      overflow:hidden;
+    }
+    .kpi .name{display:flex;gap:8px;align-items:center;font-weight:700}
+    .pill{
+      font-size:11px;color:rgba(255,255,255,.9);
+      padding:4px 8px;border-radius:999px;
+      border:1px solid rgba(255,255,255,.12);
+      background: rgba(255,255,255,.06);
+      letter-spacing:.4px;
+    }
+    .kpi .val{font-size:28px;font-weight:900;margin-top:6px}
+    .kpi .delta{font-size:12px;color:var(--muted);margin-top:4px}
+    .kpi.leader{
+      border-color: rgba(34,197,94,.6);
+    }
+    .kpi.leader::after{
+      content:"";
+      position:absolute; inset:-60px -60px auto auto;
+      width:140px;height:140px;border-radius:40px;
+      background: radial-gradient(circle at 30% 30%, rgba(34,197,94,.35), transparent 55%);
+      transform: rotate(25deg);
+    }
+    .split{display:flex;gap:12px;flex-wrap:wrap}
+    .split > .card{flex:1 1 460px}
+    table{
+      width:100%;
+      border-collapse:separate;
+      border-spacing:0;
+      overflow:hidden;
+      border-radius:14px;
+      border:1px solid rgba(36,48,65,.9);
+      background: rgba(3,7,18,.25);
+    }
+    thead th{
+      text-align:left;
+      font-size:12px;
+      letter-spacing:.5px;
+      color:var(--muted);
+      background: rgba(17,24,39,.9);
+      border-bottom:1px solid rgba(36,48,65,.9);
+      padding:10px 10px;
+      position:sticky; top:0;
+    }
+    tbody td{
+      padding:9px 10px;
+      border-bottom:1px solid rgba(36,48,65,.55);
+      font-size:13px;
+    }
+    tbody tr:last-child td{border-bottom:none}
+    td.num{font-variant-numeric: tabular-nums; text-align:right}
+    .barrow{display:flex;gap:10px;align-items:center}
+    .bar{
+      flex:1;
+      height:10px;border-radius:999px;
+      background: rgba(36,48,65,.7);
+      overflow:hidden;
+      border:1px solid rgba(255,255,255,.06);
+    }
+    .bar > span{
+      display:block;height:100%;
+      width:0%;
+      background: linear-gradient(90deg, rgba(96,165,250,.9), rgba(34,197,94,.9));
+    }
+    .legend{display:flex;gap:10px;flex-wrap:wrap;margin-top:10px}
+    .dot{width:10px;height:10px;border-radius:99px;display:inline-block;margin-right:6px}
+    .good{background:var(--good)}
+    .warn{background:var(--warn)}
+    .bad{background:var(--bad)}
+    .muted{color:var(--muted)}
+    .small{font-size:12px}
+    .data-grid{
+      overflow:auto;
+      max-height:520px;
+    }
+    .editable{
+      background: transparent;
+      border:none;
+      color:var(--text);
+      width:100%;
+      text-align:right;
+      font: inherit;
+      outline:none;
+    }
+    .editable.left{text-align:left}
+    .cell{
+      border-radius:10px;
+      padding:6px 8px;
+      border:1px solid rgba(255,255,255,.06);
+      background: rgba(255,255,255,.02);
+    }
+    .tag{
+      font-size:11px;
+      padding:3px 8px;
+      border-radius:999px;
+      border:1px solid rgba(255,255,255,.10);
+      color:rgba(255,255,255,.88);
+      background: rgba(255,255,255,.06);
+      display:inline-block;
+    }
+    .footer{
+      margin-top:14px;
+      color:var(--muted);
+      font-size:12px;
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+      justify-content:space-between;
+      align-items:center;
+    }
+    .nowrap{white-space:nowrap}
+  </style>
+
+<style>
+/* ===== Arcade Theme Overrides (scoped) ===== */
+body.theme-arcade{
+  font-size: 18px; /* increased arcade base size */
+  --grass:#1B6B3A;
+  --water:#0C3751;
+  --water2:#0A2E44;
+  --hay:#C1AD54;
+  --hay2:#E3B34C;
+  --ink:#000000;
+  --accent:#8be9fd;
+  font-family:'Schoolbell', cursive;
+    linear-gradient(90deg, rgba(255,255,255,.06) 1px, transparent 1px),
+    linear-gradient(rgba(255,255,255,.06) 1px, transparent 1px),
+    radial-gradient(circle at 20% 10%, rgba(255,255,255,.05) 0 1px, transparent 2px),
+    radial-gradient(circle at 70% 35%, rgba(255,255,255,.04) 0 1px, transparent 2px),
+    radial-gradient(circle at 40% 85%, rgba(255,255,255,.04) 0 1px, transparent 2px),
+    var(--grass) !important;
+
+  /* Screenshot-like grass field: subtle tile grid + diagonal tufts + slight vignette */
+  background:
+    radial-gradient(1200px 900px at 50% 0%, rgba(0,0,0,.10), transparent 55%),
+    radial-gradient(900px 700px at 50% 110%, rgba(0,0,0,.18), transparent 55%),
+    /* tile grid */
+    linear-gradient(90deg, rgba(255,255,255,.06) 1px, transparent 1px),
+    linear-gradient(rgba(0,0,0,.10) 1px, transparent 1px),
+    /* diagonal tuft dashes (two directions) */
+    repeating-linear-gradient(45deg, rgba(255,255,255,.06) 0 2px, transparent 2px 18px),
+    repeating-linear-gradient(135deg, rgba(0,0,0,.08) 0 2px, transparent 2px 22px),
+    /* base grass */
+    linear-gradient(180deg, #1f7a3f, #1b6b3a);
+  background-size:
+    auto, auto,
+    32px 32px, 32px 32px,
+    64px 64px, 72px 72px,
+    auto;
+  image-rendering: pixelated;
+}
+
+body.theme-arcade header{
+  background: var(--grass) !important;
+  border-bottom:4px solid var(--ink) !important;
+  backdrop-filter:none !important;
+
+  font-size: 22px;
+}
+body.theme-arcade .logo{
+  border:4px solid var(--ink) !important;
+  border-radius:0 !important;
+  box-shadow:6px 6px 0 var(--ink) !important;
+  background:
+    linear-gradient(90deg, rgba(255,255,255,.10) 1px, transparent 1px),
+    linear-gradient(rgba(255,255,255,.10) 1px, transparent 1px),
+    var(--water) !important;
+  background-size: 6px 6px, 6px 6px, auto;
+}
+body.theme-arcade .logo .horse{
+  width:22px;height:22px;
+  animation: arcadeBob 1.6s ease-in-out infinite;
+  filter: drop-shadow(2px 2px 0 rgba(0,0,0,.65));
+}
+@keyframes arcadeBob{0%,100%{transform:translateY(0)}50%{transform:translateY(-2px)}}
+
+body.theme-arcade select,
+body.theme-arcade button,
+body.theme-arcade input[type="file"]{
+  font-family:'Schoolbell', cursive;
+  font-size:9px !important;
+  background:#fff !important;
+  color:#000 !important;
+  border:3px solid var(--ink) !important;
+  border-radius:0 !important;
+  box-shadow:4px 4px 0 var(--ink) !important;
+}
+body.theme-arcade button.primary{ background: var(--hay2) !important; border-color: var(--ink) !important; }
+body.theme-arcade button:active{ transform:translate(4px,4px); box-shadow:0 0 0 var(--ink) !important; }
+
+body.theme-arcade .card{
+  background: linear-gradient(180deg, var(--water), var(--water2)) !important;
+  border:4px solid var(--ink) !important;
+  border-radius:0 !important;
+  box-shadow:8px 8px 0 var(--ink) !important;
+}
+body.theme-arcade .card h2{
+  font-size: 14px !important;
+  color: var(--accent) !important;
+  font-size:10px !important;
+  letter-spacing:1px;
+  text-transform:uppercase;
+}
+
+body.theme-arcade .kpi{
+  border:4px solid var(--ink) !important;
+  border-radius:0 !important;
+  box-shadow:6px 6px 0 var(--ink) !important;
+  background:
+    repeating-linear-gradient(0deg, rgba(0,0,0,.12) 0 1px, transparent 1px 7px),
+    repeating-linear-gradient(90deg, rgba(0,0,0,.08) 0 1px, transparent 1px 10px),
+    linear-gradient(180deg, var(--hay2), var(--hay)) !important;
+  color:#000 !important;
+}
+body.theme-arcade .kpi.leader{
+  background:
+    repeating-linear-gradient(0deg, rgba(0,0,0,.12) 0 1px, transparent 1px 7px),
+    repeating-linear-gradient(90deg, rgba(0,0,0,.08) 0 1px, transparent 1px 10px),
+    linear-gradient(180deg, #ffd166, var(--hay2)) !important;
+}
+body.theme-arcade .pill,
+body.theme-arcade .tag{
+  border:2px solid var(--ink) !important;
+  border-radius:0 !important;
+  background:#fff !important;
+  color:#000 !important;
+  font-size:8px !important;
+}
+
+body.theme-arcade table{
+  border:4px solid var(--ink) !important;
+  border-radius:0 !important;
+  background:#fff !important;
+}
+body.theme-arcade thead th{
+  background: var(--hay2) !important;
+  border-bottom:4px solid var(--ink) !important;
+  color:#000 !important;
+  font-size:9px !important;
+}
+body.theme-arcade tbody td{ color:#000 !important; font-size:9px !important; }
+body.theme-arcade tbody tr:nth-child(even) td{ background:#f7f7f7 !important; }
+
+body.theme-arcade .bar{
+  background:#e6e6e6 !important;
+  border:2px solid var(--ink) !important;
+  border-radius:0 !important;
+}
+body.theme-arcade .bar > span{
+  background: linear-gradient(180deg, #ffe08a, var(--hay2)) !important;
+  border-right:2px solid rgba(0,0,0,.25);
+}
+body.theme-arcade .dot{ border:2px solid var(--ink) !important; border-radius:0 !important; }
+
+body.theme-arcade .cell{
+  border-radius:0 !important;
+  border:2px solid rgba(0,0,0,.25) !important;
+  background:#fff !important;
+}
+body.theme-arcade .editable{ color:#000 !important; }
+
+body.theme-arcade .footer{
+  font-size:20px;
+}
+
+
+body.theme-arcade .kpi .val{
+  font-size: 34px !important;
+}
+body.theme-arcade .kpi .score{
+  font-size: 34px !important;
+}
+body.theme-arcade .kpi .name{
+  font-size: 16px !important;
+}
+
+
+body.theme-arcade .kpi .delta{
+  font-size: 18px !important;
+  color: #000000 !important;
+  font-weight: 600;
+}
+
+
+body.theme-arcade .brand{
+  font-size: 22px !important;
+}
+
+body.theme-arcade .brand h1{
+  font-size: 26px !important;
+}
+
+body.theme-arcade .controls{
+  font-size: 18px !important;
+}
+
+body.theme-arcade .controls button,
+body.theme-arcade .controls select{
+  font-size: 18px !important;
+}
+
+
+body.theme-arcade .card table{
+  font-size: 18px !important;
+}
+
+body.theme-arcade .card table thead th{
+  font-size: 18px !important;
+}
+
+body.theme-arcade .card table tbody td{
+  font-size: 18px !important;
+}
+
+
+body.theme-arcade .brand h1{
+  text-shadow: 2px 2px 0 rgba(0,0,0,0.35);
+}
+
+/* shared */
+.gem{width:16px;height:16px;display:inline-block;vertical-align:-2px}
+.score{display:inline-block;min-width:2ch}
+
+
+/* ----- Arcade background critter (horse eating hay) ----- */
+
+/* dust puff */
+#bgDust{
+  position:absolute;
+  width:22px;height:22px;
+  border:2px solid rgba(0,0,0,.45);
+  box-shadow:2px 2px 0 rgba(0,0,0,.45);
+  background: radial-gradient(circle at 40% 40%, rgba(255,255,255,.85), rgba(255,255,255,.0) 70%);
+  border-radius:50%;
+  opacity:0;
+  transform: translate(-50%,-50%) scale(0.6);
+  filter: blur(0.3px);
+}
+#bgDust.puff{
+  animation: dustPuff .45s ease-out forwards;
+}
+@keyframes dustPuff{
+  0%{ opacity:.65; transform: translate(-50%,-50%) scale(0.5);}
+  60%{ opacity:.35; transform: translate(-50%,-55%) scale(1.1);}
+  100%{ opacity:0; transform: translate(-50%,-65%) scale(1.4);}
+}
+
+#arcadeBg{
+  position:fixed;
+  inset:0;
+  pointer-events:none;
+  z-index:0;
+  display:none;
+}
+
+body.theme-arcade #arcadeBg{ display:block; }
+
+/* Keep app content above the background layer */
+body.theme-arcade header{ position:sticky; z-index:10; }
+body.theme-arcade .wrap{ position:relative; z-index:5; }
+
+#hayField{
+  position:absolute; inset:0;
+}
+
+ .hayBale{
+  position:absolute;
+  width:36px; height:36px;
+  border:2px solid rgba(0,0,0,.60);
+  box-shadow:2px 2px 0 rgba(0,0,0,.55);
+  /* hay tile look: horizontal straw bands + darker top edge + two light posts */
+  background:
+    /* dark top edge */
+    linear-gradient(#3b2412 0 3px, transparent 3px),
+    /* subtle horizontal bands */
+    repeating-linear-gradient(0deg, rgba(0,0,0,.12) 0 2px, transparent 2px 6px),
+    /* vertical straw texture */
+    repeating-linear-gradient(90deg, rgba(255,255,255,.08) 0 2px, transparent 2px 10px),
+    /* two vertical light posts (like sprite) */
+    linear-gradient(90deg,
+      transparent 0 10px,
+      rgba(255,255,255,.42) 10px 14px,
+      transparent 14px 22px,
+      rgba(255,255,255,.42) 22px 26px,
+      transparent 26px 100%),
+    /* base hay */
+    linear-gradient(180deg, #f2d07a, #d9a84b);
+  image-rendering:pixelated;
+  opacity:.60;
+  filter:saturate(1.05);
+}
+
+#bgHorse{
+  position:absolute;
+  width:68px;
+  height:68px;
+  transform: translate(-50%,-50%);
+  image-rendering:pixelated;
+  filter: drop-shadow(3px 3px 0 rgba(0,0,0,.55));
+  opacity:.65;
+}
+
+#bgHorse svg{ width:100%; height:100%; }
+
+/* little stepping */
+#bgHorse.walking svg{
+  animation: bgWalkBob .55s ease-in-out infinite;
+}
+@keyframes bgWalkBob{
+  0%,100%{ transform: translateY(0) rotate(-2deg); }
+  50%{ transform: translateY(-3px) rotate(2deg); }
+}
+  50%{ transform: translateY(-1px); }
+  100%{ transform: translateY(0); }
+}
+
+/* munch */
+#bgHorse.eating svg{
+  animation: bgMunch .22s ease-in-out infinite;
+}
+
+#bgHorse.looking svg{
+  animation: bgLook 1.2s ease-in-out infinite;
+}
+@keyframes bgLook{
+  0%,100%{ transform: rotate(-3deg) translateY(0); }
+  50%{ transform: rotate(3deg) translateY(-2px); }
+}
+
+@keyframes bgMunch{
+  0%,100%{ transform: rotate(-4deg) scale(1); }
+  50%{ transform: rotate(4deg) scale(0.98); }
+}
+
+</style>
+
+</head>
+<body>
+
+  <!-- Arcade background critter layer (only active in Arcade theme) -->
+  <div id="arcadeBg" aria-hidden="true">
+    <div id="hayField"></div>
+    <div id="bgDust"></div>
+    <div id="bgHorse">
+      <svg viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg" shape-rendering="crispEdges">
+  <rect x="5" y="3" width="7" height="4" fill="#ffffff"/>
+  <rect x="3" y="4" width="2" height="3" fill="#ffffff"/>
+  <rect x="11" y="7" width="2" height="4" fill="#ffffff"/>
+  <rect x="6" y="7" width="2" height="4" fill="#ffffff"/>
+  <rect x="4" y="9" width="2" height="5" fill="#ffffff"/>
+  <rect x="9" y="9" width="2" height="5" fill="#ffffff"/>
+  <rect x="12" y="4" width="2" height="2" fill="#ffffff"/>
+  <rect x="4" y="2" width="2" height="1" fill="#ffffff"/>
+</svg>
+    </div>
+  </div>
+
+  <header>
+    <div class="wrap">
+      <div class="toprow">
+        <div class="brand">
+          <div class="logo" title="Enclose.horse"><svg class="horse" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg" aria-label="horse">
+  <rect x="6" y="3" width="6" height="4" fill="#ffffff"/>
+  <rect x="4" y="4" width="2" height="3" fill="#ffffff"/>
+  <rect x="11" y="7" width="2" height="4" fill="#ffffff"/>
+  <rect x="7" y="7" width="2" height="4" fill="#ffffff"/>
+  <rect x="5" y="9" width="2" height="5" fill="#ffffff"/>
+  <rect x="10" y="9" width="2" height="5" fill="#ffffff"/>
+  <rect x="12" y="4" width="2" height="2" fill="#ffffff"/>
+</svg></div>
+          <div>
+            <h1>ENCLOSE.HORSE · HAY TRACKER</h1>
+            <div class="sub">Standalone dashboard · auto totals · editable rows</div>
+          </div>
+        </div>
+
+        <div class="controls">
+          <label class="small muted">View:</label>
+          <select id="weekFilter" title="Filter by week">
+            <option value="all">All Weeks</option>
+          </select>
+          <button class="primary" id="addRowBtn" title="Add a new day row">+ Add Day</button>
+          <button id="exportBtn" title="Download your data as CSV">Export CSV</button>
+          <button id="themeToggleBtn" title="Toggle Dark/Arcade theme">Theme: Arcade</button>
+          <button id="resetBtn" title="Reset back to the screenshot data">Reset</button>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main class="wrap">
+    <div class="card">
+      <h2>ALL-TIME SCOREBOARD</h2>
+      <div class="kpis" id="kpis"></div>
+      <div class="footer">
+        <div id="leaderLine" class="nowrap"></div>
+        <div class="muted">Tip: edit numbers in the table below — totals update instantly.</div>
+      </div>
+    </div>
+
+    <div class="grid">
+      <div class="card" style="grid-column: span 7;">
+        <h2>WEEKLY TOTALS</h2>
+        <table id="weeklyTable">
+          <thead>
+            <tr>
+              <th style="width:80px;">Week</th>
+              <th>Brian</th>
+              <th>Peter</th>
+              <th>Josh</th>
+              <th style="width:120px;">Leader</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+        <div class="legend small">
+          <span><span class="dot good"></span>≥ 100% of Perfect</span>
+          <span><span class="dot warn"></span>85–99%</span>
+          <span><span class="dot bad"></span>&lt; 85%</span>
+          <span class="muted">Cell color is based on % of Perfect for that day.</span>
+        </div>
+      </div>
+
+      <div class="card" style="grid-column: span 5;">
+        <h2>WEEKLY MOMENTUM (BAR VIEW)</h2>
+        <div id="bars"></div>
+        <div class="footer">
+          <div class="muted">Bars scale to the max week total in the current view.</div>
+        </div>
+      </div>
+
+      <div class="card" style="grid-column: span 12;">
+        <h2>DAY-BY-DAY INPUT (EDITABLE)</h2>
+        <div class="data-grid">
+          <table id="dayTable">
+            <thead>
+              <tr>
+                <th style="width:70px;">Day</th>
+                <th style="width:70px;">Week</th>
+                <th style="width:90px;">Perfect</th>
+                <th>Brian</th>
+                <th>Peter</th>
+                <th>Josh</th>
+                <th style="width:120px;">Notes</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
+        <div class="footer">
+          <div class="muted">Notes are optional; use them to track events, loadouts, etc.</div>
+          <div class="muted">Version: 1.0 (single-file)</div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+<script>
+  // --- Seed data from your screenshot ---
+  const DEFAULT_ROWS = [
+    {day:32, week:1, perfect:82, brian:77, peter:77, josh:77, notes:""},
+    {day:33, week:1, perfect:44, brian:43, peter:35, josh:21, notes:""},
+    {day:34, week:1, perfect:45, brian:42, peter:44, josh:45, notes:""},
+    {day:35, week:1, perfect:60, brian:35, peter:52, josh:47, notes:""},
+    {day:36, week:2, perfect:58, brian:58, peter:58, josh:46, notes:""},
+    {day:37, week:2, perfect:82, brian:76, peter:76, josh:70, notes:""},
+    {day:38, week:2, perfect:77, brian:77, peter:77, josh:77, notes:""},
+    {day:39, week:2, perfect:94, brian:88, peter:94, josh:92, notes:""},
+    {day:40, week:2, perfect:48, brian:47, peter:48, josh:48, notes:""},
+    {day:41, week:2, perfect:70, brian:68, peter:70, josh:70, notes:""},
+    {day:42, week:3, perfect:55, brian:55, peter:53, josh:54, notes:""},
+    {day:43, week:3, perfect:75, brian:75, peter:75, josh:75, notes:""}
+  ];
+
+  const STORE_KEY = "enclose_hay_tracker_rows_v1";
+
+  const GEM_SVGS = {
+  Brian: `<svg class="gem" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg">
+    <rect x="6" y="1" width="4" height="2" fill="#7dd3fc"/><rect x="4" y="3" width="8" height="2" fill="#38bdf8"/>
+    <rect x="3" y="5" width="10" height="6" fill="#0ea5e9"/><rect x="4" y="11" width="8" height="2" fill="#38bdf8"/>
+    <rect x="6" y="13" width="4" height="2" fill="#7dd3fc"/><rect x="5" y="6" width="2" height="2" fill="rgba(255,255,255,.55)"/>
+  </svg>`,
+  Peter: `<svg class="gem" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg">
+    <rect x="6" y="1" width="4" height="2" fill="#bbf7d0"/><rect x="4" y="3" width="8" height="2" fill="#4ade80"/>
+    <rect x="3" y="5" width="10" height="6" fill="#22c55e"/><rect x="4" y="11" width="8" height="2" fill="#4ade80"/>
+    <rect x="6" y="13" width="4" height="2" fill="#bbf7d0"/><rect x="5" y="6" width="2" height="2" fill="rgba(255,255,255,.55)"/>
+  </svg>`,
+  Josh: `<svg class="gem" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg">
+    <rect x="6" y="1" width="4" height="2" fill="#fda4af"/><rect x="4" y="3" width="8" height="2" fill="#fb7185"/>
+    <rect x="3" y="5" width="10" height="6" fill="#e11d48"/><rect x="4" y="11" width="8" height="2" fill="#fb7185"/>
+    <rect x="6" y="13" width="4" height="2" fill="#fda4af"/><rect x="5" y="6" width="2" height="2" fill="rgba(255,255,255,.55)"/>
+  </svg>`
+};
+
+let _prevTotals = { Brian: 0, Peter: 0, Josh: 0 };
+
+function animateNumber(el, from, to, ms=650){
+  const start = performance.now();
+  const f = Number(from)||0;
+  const t = Number(to)||0;
+  const easeOut = (p)=>1-Math.pow(1-p,3);
+  function step(now){
+    const p = Math.min(1, (now-start)/ms);
+    const v = Math.round(f + (t-f)*easeOut(p));
+    el.textContent = v.toString();
+    if(p<1) requestAnimationFrame(step);
+  }
+  requestAnimationFrame(step);
+}
+
+const els = {
+    weekFilter: document.getElementById("weekFilter"),
+    kpis: document.getElementById("kpis"),
+    leaderLine: document.getElementById("leaderLine"),
+    weeklyTableBody: document.querySelector("#weeklyTable tbody"),
+    dayTableBody: document.querySelector("#dayTable tbody"),
+    bars: document.getElementById("bars"),
+    addRowBtn: document.getElementById("addRowBtn"),
+    exportBtn: document.getElementById("exportBtn"),
+    resetBtn: document.getElementById("resetBtn"),
+  };
+
+  function loadRows(){
+    try{
+      const raw = localStorage.getItem(STORE_KEY);
+      if(!raw) return structuredClone(DEFAULT_ROWS);
+      const parsed = JSON.parse(raw);
+      if(!Array.isArray(parsed)) return structuredClone(DEFAULT_ROWS);
+      return parsed;
+    }catch(e){
+      return structuredClone(DEFAULT_ROWS);
+    }
+  }
+  function saveRows(rows){
+    localStorage.setItem(STORE_KEY, JSON.stringify(rows));
+  }
+
+  let rows = loadRows();
+
+  function uniqWeeks(rows){
+    return [...new Set(rows.map(r => Number(r.week)).filter(n => Number.isFinite(n)))].sort((a,b)=>a-b);
+  }
+
+  function getFilteredRows(){
+    const f = els.weekFilter.value;
+    if(f === "all") return rows;
+    const w = Number(f);
+    return rows.filter(r => Number(r.week) === w);
+  }
+
+  function sum(list, key){
+    return list.reduce((acc,r)=>acc + (Number(r[key])||0), 0);
+  }
+
+  function formatInt(n){ return (Math.round(n)).toString(); }
+
+  function leaderOfTotals(t){
+    const entries = Object.entries(t);
+    entries.sort((a,b)=>b[1]-a[1]);
+    return entries[0][0];
+  }
+
+  function buildWeekFilter(){
+    const weeks = uniqWeeks(rows);
+    const current = els.weekFilter.value || "all";
+    els.weekFilter.innerHTML = `<option value="all">All Weeks</option>` + weeks.map(w => `<option value="${w}">Week ${w}</option>`).join("");
+    // keep selection if possible
+    const ok = [...els.weekFilter.options].some(o => o.value === current);
+    els.weekFilter.value = ok ? current : "all";
+  }
+
+  function performanceClass(val, perfect){
+    const v = Number(val)||0;
+    const p = Math.max(1, Number(perfect)||0);
+    const ratio = v / p;
+    if(ratio >= 1) return "good";
+    if(ratio >= 0.85) return "warn";
+    return "bad";
+  }
+
+  function renderKPIs(){
+    const data = getFilteredRows();
+    const totals = {
+      Brian: sum(data, "brian"),
+      Peter: sum(data, "peter"),
+      Josh:  sum(data, "josh")
+    };
+    const sorted = Object.entries(totals).sort((a,b)=>b[1]-a[1]);
+    const [firstName, firstVal] = sorted[0];
+    const [secondName, secondVal] = sorted[1];
+    const [thirdName, thirdVal] = sorted[2];
+
+    const viewLabel = (els.weekFilter.value === "all") ? "ALL TIME" : `WEEK ${els.weekFilter.value}`;
+    els.leaderLine.innerHTML = `🏆 <b>${viewLabel} LEADER:</b> <span class="tag">${firstName}</span> · spread <b>${formatInt(firstVal - thirdVal)}</b> hay (1st → 3rd)`;
+
+    const badges = { Brian: GEM_SVGS.Brian, Peter: GEM_SVGS.Peter, Josh: GEM_SVGS.Josh };
+
+    els.kpis.innerHTML = Object.entries(totals).map(([name,val])=>{
+      const isLeader = name === firstName;
+      const deltaFromLeader = firstVal - val;
+      const deltaLine = isLeader
+        ? `👑 leading by <b>${formatInt(firstVal-secondVal)}</b> over 2nd`
+        : `-${formatInt(deltaFromLeader)} from leader`;
+      return `
+        <div class="kpi ${isLeader ? "leader" : ""}">
+          <div class="name"><span aria-hidden="true">${badges[name]}</span><span>${name}</span> <span class="pill">${viewLabel}</span></div>
+          <div class="val"><span class="score" data-player="${name}">${formatInt(val)}</span></div>
+          <div class="delta">${deltaLine}</div>
+        </div>
+      `;
+    }).join("");
+
+    // tick-up animation (KPIs only)
+    document.querySelectorAll(".score").forEach((s)=>{
+      const player = s.getAttribute("data-player");
+      const to = totals[player] ?? 0;
+      const from = _prevTotals[player] ?? 0;
+      animateNumber(s, from, to);
+    });
+    _prevTotals = { ...totals };
+  }
+
+  function computeWeeklyTotals(){
+    const filtered = getFilteredRows();
+    const byWeek = new Map();
+    for(const r of filtered){
+      const w = Number(r.week);
+      if(!Number.isFinite(w)) continue;
+      if(!byWeek.has(w)) byWeek.set(w, {week:w, brian:0, peter:0, josh:0});
+      const agg = byWeek.get(w);
+      agg.brian += Number(r.brian)||0;
+      agg.peter += Number(r.peter)||0;
+      agg.josh  += Number(r.josh)||0;
+    }
+    return [...byWeek.values()].sort((a,b)=>a.week-b.week);
+  }
+
+  function renderWeeklyTable(){
+    const weeks = computeWeeklyTotals();
+    els.weeklyTableBody.innerHTML = weeks.map(w=>{
+      const leader = leaderOfTotals({Brian:w.brian, Peter:w.peter, Josh:w.josh});
+      const tag = leader === "Brian" ? "🟦 Brian" : leader === "Peter" ? "🟩 Peter" : "🟧 Josh";
+      return `
+        <tr>
+          <td><b>Week ${w.week}</b></td>
+          <td class="num">${formatInt(w.brian)}</td>
+          <td class="num">${formatInt(w.peter)}</td>
+          <td class="num">${formatInt(w.josh)}</td>
+          <td><span class="tag">${tag}</span></td>
+        </tr>
+      `;
+    }).join("");
+  }
+
+  function renderBars(){
+    const weeks = computeWeeklyTotals();
+    const max = Math.max(1, ...weeks.flatMap(w => [w.brian,w.peter,w.josh].map(n=>Number(n)||0)));
+    const blocks = weeks.map(w=>{
+      const entries = [
+        {name:"Brian", icon:"🟦", val:w.brian},
+        {name:"Peter", icon:"🟩", val:w.peter},
+        {name:"Josh",  icon:"🟧", val:w.josh},
+      ];
+      const rowsHtml = entries.map(e=>{
+        const pct = Math.round((Number(e.val)||0) / max * 100);
+        return `
+          <div class="barrow" style="margin:10px 0;">
+            <div style="width:74px;" class="small muted">${e.icon} ${e.name}</div>
+            <div class="bar"><span style="width:${pct}%;"></span></div>
+            <div style="width:56px;" class="num">${formatInt(e.val)}</div>
+          </div>
+        `;
+      }).join("");
+      return `
+        <div class="card" style="padding:12px;margin-bottom:12px;background:rgba(3,7,18,.18);">
+          <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;">
+            <div><b>Week ${w.week}</b> <span class="muted small">totals</span></div>
+            <span class="tag">max-scale</span>
+          </div>
+          ${rowsHtml}
+        </div>
+      `;
+    }).join("");
+    els.bars.innerHTML = blocks || `<div class="muted">No data in this view.</div>`;
+  }
+
+  function renderDayTable(){
+    const data = rows.slice().sort((a,b)=>(Number(a.day)||0)-(Number(b.day)||0));
+    els.dayTableBody.innerHTML = data.map((r, idx)=>{
+      // keep stable reference by using index in the array order
+      const p = Number(r.perfect)||0;
+      const clsB = performanceClass(r.brian, p);
+      const clsP = performanceClass(r.peter, p);
+      const clsJ = performanceClass(r.josh,  p);
+
+      return `
+        <tr data-idx="${idx}">
+          <td class="num"><input class="editable" inputmode="numeric" value="${r.day ?? ""}" data-k="day"></td>
+          <td class="num"><input class="editable" inputmode="numeric" value="${r.week ?? ""}" data-k="week"></td>
+          <td class="num"><input class="editable" inputmode="numeric" value="${r.perfect ?? ""}" data-k="perfect"></td>
+
+          <td>
+            <div class="cell" style="border-color: rgba(255,255,255,.06); background: rgba(255,255,255,.02);">
+              <input class="editable" inputmode="numeric" value="${r.brian ?? ""}" data-k="brian" style="${clsB === "good" ? "color:var(--good)" : clsB === "warn" ? "color:var(--warn)" : "color:var(--bad)"}">
+            </div>
+          </td>
+          <td>
+            <div class="cell">
+              <input class="editable" inputmode="numeric" value="${r.peter ?? ""}" data-k="peter" style="${clsP === "good" ? "color:var(--good)" : clsP === "warn" ? "color:var(--warn)" : "color:var(--bad)"}">
+            </div>
+          </td>
+          <td>
+            <div class="cell">
+              <input class="editable" inputmode="numeric" value="${r.josh ?? ""}" data-k="josh" style="${clsJ === "good" ? "color:var(--good)" : clsJ === "warn" ? "color:var(--warn)" : "color:var(--bad)"}">
+            </div>
+          </td>
+
+          <td><input class="editable editable.left" value="${(r.notes ?? "").replaceAll('"','&quot;')}" data-k="notes"></td>
+        </tr>
+      `;
+    }).join("");
+
+    // attach one input handler
+    els.dayTableBody.querySelectorAll("input").forEach(inp=>{
+      inp.addEventListener("input", (e)=>{
+        const tr = e.target.closest("tr");
+        const idx = Number(tr?.dataset?.idx);
+        const key = e.target.dataset.k;
+        if(!Number.isFinite(idx) || !key) return;
+
+        let val = e.target.value;
+        if(key !== "notes"){
+          // allow blank, else numeric
+          val = val.trim() === "" ? "" : Number(val);
+        }
+        rows[idx][key] = val;
+
+        saveRows(rows);
+        // re-render computed areas (keep table responsive)
+        buildWeekFilter();
+        renderAll();
+      }, {passive:true});
+    });
+  }
+
+  function renderAll(){
+    renderKPIs();
+    renderWeeklyTable();
+    renderBars();
+    renderDayTable();
+  }
+
+  function addRow(){
+    // pick next day number and current max week
+    const maxDay = Math.max(0, ...rows.map(r=>Number(r.day)||0));
+    const maxWeek = Math.max(1, ...rows.map(r=>Number(r.week)||1));
+    rows.push({day:maxDay+1, week:maxWeek, perfect:"", brian:"", peter:"", josh:"", notes:""});
+    saveRows(rows);
+    buildWeekFilter();
+    renderAll();
+  }
+
+  function reset(){
+    rows = structuredClone(DEFAULT_ROWS);
+    saveRows(rows);
+    buildWeekFilter();
+    renderAll();
+  }
+
+  function exportCSV(){
+    const header = ["day","week","perfect","brian","peter","josh","notes"];
+    const lines = [header.join(",")];
+    for(const r of rows){
+      const row = header.map(k=>{
+        const v = r[k] ?? "";
+        const s = String(v).replaceAll('"','""');
+        return (s.includes(",") || s.includes('"') || s.includes("\n")) ? `"${s}"` : s;
+      }).join(",");
+      lines.push(row);
+    }
+    const blob = new Blob([lines.join("\n")], {type:"text/csv;charset=utf-8"});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "enclose_hay_tracker.csv";
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
+  }
+
+    // Theme toggle
+  const THEME_KEY = "enclose_theme_v2"; // "dark" | "arcade"
+  const themeBtn = document.getElementById("themeToggleBtn");
+
+  function setTheme(mode){
+    document.body.classList.toggle("theme-arcade", mode === "arcade");
+    // No special class needed for dark; it is the base stylesheet
+    if(themeBtn) themeBtn.textContent = mode === "arcade" ? "Theme: Arcade" : "Theme: Dark";
+    localStorage.setItem(THEME_KEY, mode);
+    // start/stop decorative background critter
+    if(mode === "arcade") startBgHorse(); else stopBgHorse();
+  }
+
+
+  // Arcade background horse that wanders and "eats" hay (purely decorative)
+  const bg = {
+    root: document.getElementById("arcadeBg"),
+    field: document.getElementById("hayField"),
+    horse: document.getElementById("bgHorse"),
+    dust: document.getElementById("bgDust"),
+    running: false,
+    raf: null,
+    hay: [],
+    state: "idle", // idle | walking | eating | looking
+    x: 80, y: 140,
+    tx: 200, ty: 200,
+    facing: 1,
+    eatUntil: 0,
+    lookUntil: 0,
+    nextLookAt: 0,
+    lastT: 0,
+  };
+
+  function rand(min, max){ return min + Math.random()*(max-min); }
+
+  function spawnHay(n=7){
+    if(!bg.field) return;
+    bg.field.innerHTML = "";
+    bg.hay = [];
+    const pad = 60; // avoid edges / header a bit
+    const w = window.innerWidth, h = window.innerHeight;
+    for(let i=0;i<n;i++){
+      const el = document.createElement("div");
+      el.className = "hayBale";
+      const x = rand(pad, Math.max(pad+1, w-pad));
+      const y = rand(pad+40, Math.max(pad+41, h-pad));
+      el.style.left = x + "px";
+      el.style.top  = y + "px";
+      el.style.opacity = (0.40 + Math.random()*0.25).toFixed(2);
+      bg.field.appendChild(el);
+      bg.hay.push({el, x, y});
+    }
+  }
+
+  function pickTarget(){
+    if(!bg.hay.length){ spawnHay(7); }
+    // nearest hay
+    let best = bg.hay[0], bestD = Infinity;
+    for(const h of bg.hay){
+      const dx = h.x - bg.x, dy = h.y - bg.y;
+      const d2 = dx*dx + dy*dy;
+      if(d2 < bestD){ bestD = d2; best = h; }
+    }
+    bg.tx = best.x; bg.ty = best.y;
+  }
+
+  function eatNearest(){
+    // remove hay within range
+    let idx = -1, bestD = Infinity;
+    for(let i=0;i<bg.hay.length;i++){
+      const h = bg.hay[i];
+      const dx = h.x - bg.x, dy = h.y - bg.y;
+      const d2 = dx*dx + dy*dy;
+      if(d2 < bestD){ bestD = d2; idx = i; }
+    }
+    if(idx >= 0 && bestD < 14*14){
+      const h = bg.hay[idx];
+      try{ h.el.remove(); }catch(_){}
+      bg.hay.splice(idx,1);
+      // spawn one new hay somewhere else
+      const pad = 60, w = window.innerWidth, hgt = window.innerHeight;
+      const el = document.createElement("div");
+      el.className = "hayBale";
+      const x = rand(pad, Math.max(pad+1, w-pad));
+      const y = rand(pad+40, Math.max(pad+41, hgt-pad));
+      el.style.left = x + "px";
+      el.style.top  = y + "px";
+      el.style.opacity = (0.40 + Math.random()*0.25).toFixed(2);
+      bg.field.appendChild(el);
+      bg.hay.push({el, x, y});
+    }
+    pickTarget();
+  }
+
+  function puffDust(){
+    if(!bg.dust) return;
+    bg.dust.style.left = (bg.x - (bg.facing*10)) + "px";
+    bg.dust.style.top  = (bg.y + 16) + "px";
+    bg.dust.classList.remove("puff");
+    // restart animation
+    void bg.dust.offsetWidth;
+    bg.dust.classList.add("puff");
+  }
+
+  function setHorseState(st){
+    const prev = bg.state;
+    bg.state = st;
+    if(!bg.horse) return;
+    bg.horse.classList.toggle("walking", st === "walking");
+    if(st === "walking" && prev !== "walking") puffDust();
+    bg.horse.classList.toggle("eating", st === "eating");
+    bg.horse.classList.toggle("looking", st === "looking");
+  }
+
+  function stepBg(t){
+    if(!bg.running) return;
+    if(!bg.lastT) bg.lastT = t;
+    const dt = Math.min(0.05, (t - bg.lastT)/1000);
+    bg.lastT = t;
+
+    const dx = bg.tx - bg.x;
+    const dy = bg.ty - bg.y;
+    const dist = Math.hypot(dx, dy);
+
+    if(bg.state === "eating"){
+      if(t > bg.eatUntil){
+        setHorseState("walking");
+        eatNearest();
+      }
+    }else{
+      // occasionally look around
+      if(bg.nextLookAt === 0) bg.nextLookAt = t + 2200 + Math.random()*2600;
+      if(bg.state !== "looking" && t > bg.nextLookAt && dist > 20){
+        setHorseState("looking");
+        bg.lookUntil = t + 700 + Math.random()*900;
+      }
+      if(bg.state === "looking"){
+        if(t > bg.lookUntil){
+          bg.nextLookAt = t + 2500 + Math.random()*3500;
+          // tiny random turn before continuing
+          bg.facing = (Math.random() < 0.5) ? -bg.facing : bg.facing;
+          setHorseState("walking");
+        }
+      }
+
+      // walk toward target
+      if(dist < 8){
+        setHorseState("eating");
+        bg.eatUntil = t + 900 + Math.random()*600;
+      }else{
+        if(bg.state !== "looking") setHorseState("walking");
+        if(bg.state === "looking"){
+          // don't move while looking
+        } else {
+          const speed = 95 + Math.random()*15; // px/s
+        const vx = (dx/dist) * speed;
+        const vy = (dy/dist) * speed;
+        bg.x += vx * dt;
+        bg.y += vy * dt;
+
+          // facing
+          const face = vx >= 0 ? 1 : -1;
+        if(face !== bg.facing){
+          bg.facing = face;
+        }
+        }
+      }
+    }
+
+    // apply transform
+    if(bg.horse){
+      bg.horse.style.left = bg.x + "px";
+      bg.horse.style.top  = bg.y + "px";
+      bg.horse.style.transform = `translate(-50%,-50%) scaleX(${bg.facing})`;
+    }
+
+    bg.raf = requestAnimationFrame(stepBg);
+  }
+
+  function startBgHorse(){
+    if(bg.running) return;
+    bg.running = true;
+    bg.lastT = 0;
+    // place horse somewhere reasonable
+    bg.x = rand(80, Math.max(120, window.innerWidth - 80));
+    bg.y = rand(120, Math.max(160, window.innerHeight - 80));
+    spawnHay(7);
+    pickTarget();
+    setHorseState("walking");
+    bg.raf = requestAnimationFrame(stepBg);
+  }
+
+  function stopBgHorse(){
+    bg.running = false;
+    if(bg.raf) cancelAnimationFrame(bg.raf);
+    bg.raf = null;
+    if(bg.field) bg.field.innerHTML = "";
+    bg.hay = [];
+    setHorseState("idle");
+  }
+
+  window.addEventListener("resize", ()=>{
+    if(document.body.classList.contains("theme-arcade")){
+      spawnHay(7);
+      pickTarget();
+    }
+  });
+
+  const savedTheme = localStorage.getItem(THEME_KEY) || "dark";
+  setTheme(savedTheme);
+
+  if(themeBtn){
+    themeBtn.addEventListener("click", ()=>{
+      const cur = document.body.classList.contains("theme-arcade") ? "arcade" : "dark";
+      setTheme(cur === "dark" ? "arcade" : "dark");
+      renderAll();
+    });
+  }
+
+  // Events
+  els.weekFilter.addEventListener("change", ()=>renderAll());
+  els.addRowBtn.addEventListener("click", addRow);
+  els.resetBtn.addEventListener("click", reset);
+  els.exportBtn.addEventListener("click", exportCSV);
+
+  // Init
+  buildWeekFilter();
+  renderAll();
+</script>
+</body>
+</html>
