@@ -1,0 +1,717 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Enclose.horse – Hay Tracker Dashboard</title>
+  <style>
+    :root{
+      --bg:#0b0f17;
+      --panel:#111827;
+      --panel2:#0f172a;
+      --text:#e5e7eb;
+      --muted:#9ca3af;
+      --line:#243041;
+      --accent:#60a5fa;
+      --good:#22c55e;
+      --warn:#f59e0b;
+      --bad:#ef4444;
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji","Segoe UI Emoji";
+      background: radial-gradient(1200px 700px at 20% 0%, rgba(96,165,250,.12), transparent 60%),
+                  radial-gradient(1200px 700px at 100% 20%, rgba(34,197,94,.10), transparent 55%),
+                  var(--bg);
+      color:var(--text);
+    }
+    header{
+      position:sticky; top:0;
+      z-index:10;
+      backdrop-filter: blur(10px);
+      background: rgba(11,15,23,.70);
+      border-bottom: 1px solid rgba(36,48,65,.8);
+    }
+    .wrap{max-width:1100px;margin:0 auto;padding:18px 18px 28px}
+    .toprow{display:flex;gap:14px;flex-wrap:wrap;align-items:center;justify-content:space-between}
+    .brand{display:flex;gap:10px;align-items:center}
+    .logo{
+      width:38px;height:38px;border-radius:12px;
+      background: linear-gradient(135deg, rgba(96,165,250,.9), rgba(34,197,94,.8));
+      display:grid;place-items:center;
+      box-shadow: 0 10px 25px rgba(0,0,0,.35);
+      border:1px solid rgba(255,255,255,.10);
+      user-select:none;
+    }
+    .brand h1{font-size:16px;margin:0;letter-spacing:.6px}
+    .brand .sub{font-size:12px;color:var(--muted);margin-top:2px}
+    .controls{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+    select, button, input[type="file"]{
+      background: rgba(17,24,39,.9);
+      color:var(--text);
+      border:1px solid rgba(36,48,65,.9);
+      border-radius:12px;
+      padding:10px 12px;
+      font-size:13px;
+      outline:none;
+    }
+    button{cursor:pointer}
+    button.primary{
+      border-color: rgba(96,165,250,.7);
+      box-shadow: 0 0 0 0 rgba(96,165,250,.0);
+    }
+    button.primary:hover{box-shadow: 0 0 0 4px rgba(96,165,250,.12)}
+    .grid{
+      display:grid;
+      grid-template-columns: repeat(12, 1fr);
+      gap:14px;
+      margin-top:16px;
+    }
+    .card{
+      background: linear-gradient(180deg, rgba(17,24,39,.92), rgba(15,23,42,.86));
+      border:1px solid rgba(36,48,65,.9);
+      border-radius:18px;
+      padding:14px 14px;
+      box-shadow: 0 15px 35px rgba(0,0,0,.30);
+    }
+    .card h2{margin:0 0 10px;font-size:13px;color:var(--muted);font-weight:600;letter-spacing:.6px}
+    .kpis{display:flex;gap:12px;flex-wrap:wrap}
+    .kpi{
+      flex:1 1 220px;
+      padding:14px;
+      border-radius:16px;
+      border:1px solid rgba(36,48,65,.9);
+      background: rgba(3,7,18,.35);
+      position:relative;
+      overflow:hidden;
+    }
+    .kpi .name{display:flex;gap:8px;align-items:center;font-weight:700}
+    .pill{
+      font-size:11px;color:rgba(255,255,255,.9);
+      padding:4px 8px;border-radius:999px;
+      border:1px solid rgba(255,255,255,.12);
+      background: rgba(255,255,255,.06);
+      letter-spacing:.4px;
+    }
+    .kpi .val{font-size:28px;font-weight:900;margin-top:6px}
+    .kpi .delta{font-size:12px;color:var(--muted);margin-top:4px}
+    .kpi.leader{
+      border-color: rgba(34,197,94,.6);
+    }
+    .kpi.leader::after{
+      content:"";
+      position:absolute; inset:-60px -60px auto auto;
+      width:140px;height:140px;border-radius:40px;
+      background: radial-gradient(circle at 30% 30%, rgba(34,197,94,.35), transparent 55%);
+      transform: rotate(25deg);
+    }
+    table{
+      width:100%;
+      border-collapse:separate;
+      border-spacing:0;
+      overflow:hidden;
+      border-radius:14px;
+      border:1px solid rgba(36,48,65,.9);
+      background: rgba(3,7,18,.25);
+    }
+    thead th{
+      text-align:left;
+      font-size:12px;
+      letter-spacing:.5px;
+      color:var(--muted);
+      background: rgba(17,24,39,.9);
+      border-bottom:1px solid rgba(36,48,65,.9);
+      padding:10px 10px;
+      position:sticky; top:0;
+    }
+    tbody td{
+      padding:9px 10px;
+      border-bottom:1px solid rgba(36,48,65,.55);
+      font-size:13px;
+    }
+    tbody tr:last-child td{border-bottom:none}
+    td.num{font-variant-numeric: tabular-nums; text-align:right}
+    .barrow{display:flex;gap:10px;align-items:center}
+    .bar{
+      flex:1;
+      height:10px;border-radius:999px;
+      background: rgba(36,48,65,.7);
+      overflow:hidden;
+      border:1px solid rgba(255,255,255,.06);
+    }
+    .bar > span{
+      display:block;height:100%;
+      width:0%;
+      background: linear-gradient(90deg, rgba(96,165,250,.9), rgba(34,197,94,.9));
+    }
+    .legend{display:flex;gap:10px;flex-wrap:wrap;margin-top:10px}
+    .dot{width:10px;height:10px;border-radius:99px;display:inline-block;margin-right:6px}
+    .good{background:var(--good)}
+    .warn{background:var(--warn)}
+    .bad{background:var(--bad)}
+    .muted{color:var(--muted)}
+    .small{font-size:12px}
+    .data-grid{
+      overflow:auto;
+      max-height:520px;
+    }
+    .editable{
+      background: transparent;
+      border:none;
+      color:var(--text);
+      width:100%;
+      text-align:right;
+      font: inherit;
+      outline:none;
+    }
+    .editable.left{text-align:left}
+    .cell{
+      border-radius:10px;
+      padding:6px 8px;
+      border:1px solid rgba(255,255,255,.06);
+      background: rgba(255,255,255,.02);
+    }
+    .tag{
+      font-size:11px;
+      padding:3px 8px;
+      border-radius:999px;
+      border:1px solid rgba(255,255,255,.10);
+      color:rgba(255,255,255,.88);
+      background: rgba(255,255,255,.06);
+      display:inline-block;
+    }
+    .footer{
+      margin-top:14px;
+      color:var(--muted);
+      font-size:12px;
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+      justify-content:space-between;
+      align-items:center;
+    }
+    .nowrap{white-space:nowrap}
+    .chipline{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+  </style>
+
+  <!-- Excel parser (SheetJS) -->
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+</head>
+<body>
+  <header>
+    <div class="wrap">
+      <div class="toprow">
+        <div class="brand">
+          <div class="logo" title="Enclose.horse">🐴</div>
+          <div>
+            <h1>ENCLOSE.HORSE · HAY TRACKER</h1>
+            <div class="sub">Local Excel auto-load · editable fallback · auto totals</div>
+          </div>
+        </div>
+
+        <div class="controls">
+          <label class="small muted">View:</label>
+          <select id="weekFilter" title="Filter by week">
+            <option value="all">All Weeks</option>
+          </select>
+
+          <span id="excelStatus" class="tag" title="Excel connection status">Excel: …</span>
+
+          <button id="refreshExcelBtn" class="primary" title="Reload HAY_TRACKER.xlsx now">Refresh Excel</button>
+
+          <label class="small muted" style="display:flex;align-items:center;gap:8px;padding:6px 10px;border-radius:12px;border:1px solid rgba(36,48,65,.9);background:rgba(17,24,39,.9);">
+            <input id="autoRefreshChk" type="checkbox" style="accent-color:#60a5fa;">
+            Auto-refresh
+          </label>
+
+          <button class="primary" id="addRowBtn" title="Add a new day row">+ Add Day</button>
+          <button id="exportBtn" title="Download your data as CSV">Export CSV</button>
+          <button id="resetBtn" title="Reset back to the screenshot data">Reset</button>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main class="wrap">
+    <div class="card">
+      <h2>ALL-TIME SCOREBOARD</h2>
+      <div class="kpis" id="kpis"></div>
+      <div class="footer">
+        <div id="leaderLine" class="nowrap"></div>
+        <div class="chipline">
+          <span class="tag" title="Set SHEET_NAME in the HTML to force a sheet">Sheet: first (default)</span>
+          <span class="tag" title="Rows with blanks or '*' are ignored">Cleans blanks/*</span>
+        </div>
+      </div>
+      <div class="muted small" style="margin-top:10px;">
+        Option 2 requires running a local server (e.g., <span class="nowrap">python -m http.server 8000</span>) so the page can fetch <b>HAY_TRACKER.xlsx</b>.
+      </div>
+    </div>
+
+    <div class="grid">
+      <div class="card" style="grid-column: span 7;">
+        <h2>WEEKLY TOTALS</h2>
+        <table id="weeklyTable">
+          <thead>
+            <tr>
+              <th style="width:80px;">Week</th>
+              <th>Brian</th>
+              <th>Peter</th>
+              <th>Josh</th>
+              <th style="width:120px;">Leader</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+        <div class="legend small">
+          <span><span class="dot good"></span>≥ 100% of Perfect</span>
+          <span><span class="dot warn"></span>85–99%</span>
+          <span><span class="dot bad"></span>&lt; 85%</span>
+          <span class="muted">Cell color is based on % of Perfect for that day.</span>
+        </div>
+      </div>
+
+      <div class="card" style="grid-column: span 5;">
+        <h2>WEEKLY MOMENTUM (BAR VIEW)</h2>
+        <div id="bars"></div>
+        <div class="footer">
+          <div class="muted">Bars scale to the max week total in the current view.</div>
+        </div>
+      </div>
+
+      <div class="card" style="grid-column: span 12;">
+        <h2>DAY-BY-DAY INPUT (EDITABLE)</h2>
+        <div class="data-grid">
+          <table id="dayTable">
+            <thead>
+              <tr>
+                <th style="width:70px;">Day</th>
+                <th style="width:70px;">Week</th>
+                <th style="width:90px;">Perfect</th>
+                <th>Brian</th>
+                <th>Peter</th>
+                <th>Josh</th>
+                <th style="width:120px;">Notes</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
+        <div class="footer">
+          <div class="muted">If Excel isn’t available, you can still edit here. Totals update instantly.</div>
+          <div class="muted">Version: 1.1 (Excel auto-load)</div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+<script>
+  // --- Seed data from your screenshot ---
+  const DEFAULT_ROWS = [
+    {day:32, week:1, perfect:82, brian:77, peter:77, josh:77, notes:""},
+    {day:33, week:1, perfect:44, brian:43, peter:35, josh:21, notes:""},
+    {day:34, week:1, perfect:45, brian:42, peter:44, josh:45, notes:""},
+    {day:35, week:1, perfect:60, brian:35, peter:52, josh:47, notes:""},
+    {day:36, week:2, perfect:58, brian:58, peter:58, josh:46, notes:""},
+    {day:37, week:2, perfect:82, brian:76, peter:76, josh:70, notes:""},
+    {day:38, week:2, perfect:77, brian:77, peter:77, josh:77, notes:""},
+    {day:39, week:2, perfect:94, brian:88, peter:94, josh:92, notes:""},
+    {day:40, week:2, perfect:48, brian:47, peter:48, josh:48, notes:""},
+    {day:41, week:2, perfect:70, brian:68, peter:70, josh:70, notes:""},
+    {day:42, week:3, perfect:55, brian:55, peter:53, josh:54, notes:""},
+    {day:43, week:3, perfect:75, brian:75, peter:75, josh:75, notes:""}
+  ];
+
+  const STORE_KEY = "enclose_hay_tracker_rows_v1";
+  const AUTOREFRESH_KEY = "enclose_excel_autorefresh_v1";
+
+  // ---- Excel settings (Option 2: local server) ----
+  const EXCEL_URL = "HAY_TRACKER.xlsx";     // Put HAY_TRACKER.xlsx in same folder as this HTML
+  const SHEET_NAME = "";               // Set to "HAY" (or your sheet name) to force a sheet; blank = first sheet
+
+  const els = {
+    weekFilter: document.getElementById("weekFilter"),
+    kpis: document.getElementById("kpis"),
+    leaderLine: document.getElementById("leaderLine"),
+    weeklyTableBody: document.querySelector("#weeklyTable tbody"),
+    dayTableBody: document.querySelector("#dayTable tbody"),
+    bars: document.getElementById("bars"),
+    addRowBtn: document.getElementById("addRowBtn"),
+    exportBtn: document.getElementById("exportBtn"),
+    resetBtn: document.getElementById("resetBtn"),
+
+    excelStatus: document.getElementById("excelStatus"),
+    refreshExcelBtn: document.getElementById("refreshExcelBtn"),
+    autoRefreshChk: document.getElementById("autoRefreshChk"),
+  };
+
+  function loadRows(){
+    try{
+      const raw = localStorage.getItem(STORE_KEY);
+      if(!raw) return structuredClone(DEFAULT_ROWS);
+      const parsed = JSON.parse(raw);
+      if(!Array.isArray(parsed)) return structuredClone(DEFAULT_ROWS);
+      return parsed;
+    }catch(e){
+      return structuredClone(DEFAULT_ROWS);
+    }
+  }
+  function saveRows(rows){
+    localStorage.setItem(STORE_KEY, JSON.stringify(rows));
+  }
+
+  let rows = loadRows();
+  let autoRefreshTimer = null;
+
+  function uniqWeeks(rows){
+    return [...new Set(rows.map(r => Number(r.week)).filter(n => Number.isFinite(n)))].sort((a,b)=>a-b);
+  }
+
+  function getFilteredRows(){
+    const f = els.weekFilter.value;
+    if(f === "all") return rows;
+    const w = Number(f);
+    return rows.filter(r => Number(r.week) === w);
+  }
+
+  function sum(list, key){
+    return list.reduce((acc,r)=>acc + (Number(r[key])||0), 0);
+  }
+
+  function formatInt(n){ return (Math.round(n)).toString(); }
+
+  function leaderOfTotals(t){
+    const entries = Object.entries(t);
+    entries.sort((a,b)=>b[1]-a[1]);
+    return entries[0][0];
+  }
+
+  function buildWeekFilter(){
+    const weeks = uniqWeeks(rows);
+    const current = els.weekFilter.value || "all";
+    els.weekFilter.innerHTML = `<option value="all">All Weeks</option>` + weeks.map(w => `<option value="${w}">Week ${w}</option>`).join("");
+    const ok = [...els.weekFilter.options].some(o => o.value === current);
+    els.weekFilter.value = ok ? current : "all";
+  }
+
+  function performanceClass(val, perfect){
+    const v = Number(val)||0;
+    const p = Math.max(1, Number(perfect)||0);
+    const ratio = v / p;
+    if(ratio >= 1) return "good";
+    if(ratio >= 0.85) return "warn";
+    return "bad";
+  }
+
+  function renderKPIs(){
+    const data = getFilteredRows();
+    const totals = {
+      Brian: sum(data, "brian"),
+      Peter: sum(data, "peter"),
+      Josh:  sum(data, "josh")
+    };
+    const sorted = Object.entries(totals).sort((a,b)=>b[1]-a[1]);
+    const [firstName, firstVal] = sorted[0];
+    const [secondName, secondVal] = sorted[1];
+    const [thirdName, thirdVal] = sorted[2];
+
+    const viewLabel = (els.weekFilter.value === "all") ? "ALL TIME" : `WEEK ${els.weekFilter.value}`;
+    els.leaderLine.innerHTML = `🏆 <b>${viewLabel} LEADER:</b> <span class="tag">${firstName}</span> · spread <b>${formatInt(firstVal - thirdVal)}</b> hay (1st → 3rd)`;
+
+    const badges = { Brian:"🟦", Peter:"🟩", Josh:"🟧" };
+
+    els.kpis.innerHTML = Object.entries(totals).map(([name,val])=>{
+      const isLeader = name === firstName;
+      const deltaFromLeader = firstVal - val;
+      const deltaLine = isLeader
+        ? `👑 leading by <b>${formatInt(firstVal-secondVal)}</b> over 2nd`
+        : `-${formatInt(deltaFromLeader)} from leader`;
+      return `
+        <div class="kpi ${isLeader ? "leader" : ""}">
+          <div class="name">${badges[name]} ${name} <span class="pill">${viewLabel}</span></div>
+          <div class="val">${formatInt(val)}</div>
+          <div class="delta">${deltaLine}</div>
+        </div>
+      `;
+    }).join("");
+  }
+
+  function computeWeeklyTotals(){
+    const filtered = getFilteredRows();
+    const byWeek = new Map();
+    for(const r of filtered){
+      const w = Number(r.week);
+      if(!Number.isFinite(w)) continue;
+      if(!byWeek.has(w)) byWeek.set(w, {week:w, brian:0, peter:0, josh:0});
+      const agg = byWeek.get(w);
+      agg.brian += Number(r.brian)||0;
+      agg.peter += Number(r.peter)||0;
+      agg.josh  += Number(r.josh)||0;
+    }
+    return [...byWeek.values()].sort((a,b)=>a.week-b.week);
+  }
+
+  function renderWeeklyTable(){
+    const weeks = computeWeeklyTotals();
+    els.weeklyTableBody.innerHTML = weeks.map(w=>{
+      const leader = leaderOfTotals({Brian:w.brian, Peter:w.peter, Josh:w.josh});
+      const tag = leader === "Brian" ? "🟦 Brian" : leader === "Peter" ? "🟩 Peter" : "🟧 Josh";
+      return `
+        <tr>
+          <td><b>Week ${w.week}</b></td>
+          <td class="num">${formatInt(w.brian)}</td>
+          <td class="num">${formatInt(w.peter)}</td>
+          <td class="num">${formatInt(w.josh)}</td>
+          <td><span class="tag">${tag}</span></td>
+        </tr>
+      `;
+    }).join("");
+  }
+
+  function renderBars(){
+    const weeks = computeWeeklyTotals();
+    const max = Math.max(1, ...weeks.flatMap(w => [w.brian,w.peter,w.josh].map(n=>Number(n)||0)));
+    const blocks = weeks.map(w=>{
+      const entries = [
+        {name:"Brian", icon:"🟦", val:w.brian},
+        {name:"Peter", icon:"🟩", val:w.peter},
+        {name:"Josh",  icon:"🟧", val:w.josh},
+      ];
+      const rowsHtml = entries.map(e=>{
+        const pct = Math.round((Number(e.val)||0) / max * 100);
+        return `
+          <div class="barrow" style="margin:10px 0;">
+            <div style="width:74px;" class="small muted">${e.icon} ${e.name}</div>
+            <div class="bar"><span style="width:${pct}%;"></span></div>
+            <div style="width:56px;" class="num">${formatInt(e.val)}</div>
+          </div>
+        `;
+      }).join("");
+      return `
+        <div class="card" style="padding:12px;margin-bottom:12px;background:rgba(3,7,18,.18);">
+          <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;">
+            <div><b>Week ${w.week}</b> <span class="muted small">totals</span></div>
+            <span class="tag">max-scale</span>
+          </div>
+          ${rowsHtml}
+        </div>
+      `;
+    }).join("");
+    els.bars.innerHTML = blocks || `<div class="muted">No data in this view.</div>`;
+  }
+
+  function renderDayTable(){
+    const data = rows.slice().sort((a,b)=>(Number(a.day)||0)-(Number(b.day)||0));
+    els.dayTableBody.innerHTML = data.map((r, idx)=>{
+      const p = Number(r.perfect)||0;
+      const clsB = performanceClass(r.brian, p);
+      const clsP = performanceClass(r.peter, p);
+      const clsJ = performanceClass(r.josh,  p);
+
+      return `
+        <tr data-idx="${idx}">
+          <td class="num"><input class="editable" inputmode="numeric" value="${r.day ?? ""}" data-k="day"></td>
+          <td class="num"><input class="editable" inputmode="numeric" value="${r.week ?? ""}" data-k="week"></td>
+          <td class="num"><input class="editable" inputmode="numeric" value="${r.perfect ?? ""}" data-k="perfect"></td>
+
+          <td>
+            <div class="cell">
+              <input class="editable" inputmode="numeric" value="${r.brian ?? ""}" data-k="brian"
+                style="${clsB === "good" ? "color:var(--good)" : clsB === "warn" ? "color:var(--warn)" : "color:var(--bad)"}">
+            </div>
+          </td>
+          <td>
+            <div class="cell">
+              <input class="editable" inputmode="numeric" value="${r.peter ?? ""}" data-k="peter"
+                style="${clsP === "good" ? "color:var(--good)" : clsP === "warn" ? "color:var(--warn)" : "color:var(--bad)"}">
+            </div>
+          </td>
+          <td>
+            <div class="cell">
+              <input class="editable" inputmode="numeric" value="${r.josh ?? ""}" data-k="josh"
+                style="${clsJ === "good" ? "color:var(--good)" : clsJ === "warn" ? "color:var(--warn)" : "color:var(--bad)"}">
+            </div>
+          </td>
+
+          <td><input class="editable editable.left" value="${(r.notes ?? "").replaceAll('"','&quot;')}" data-k="notes"></td>
+        </tr>
+      `;
+    }).join("");
+
+    els.dayTableBody.querySelectorAll("input").forEach(inp=>{
+      inp.addEventListener("input", (e)=>{
+        const tr = e.target.closest("tr");
+        const idx = Number(tr?.dataset?.idx);
+        const key = e.target.dataset.k;
+        if(!Number.isFinite(idx) || !key) return;
+
+        let val = e.target.value;
+        if(key !== "notes"){
+          val = val.trim() === "" ? "" : Number(val);
+        }
+        rows[idx][key] = val;
+
+        saveRows(rows);
+        buildWeekFilter();
+        renderAll();
+      }, {passive:true});
+    });
+  }
+
+  function renderAll(){
+    renderKPIs();
+    renderWeeklyTable();
+    renderBars();
+    renderDayTable();
+  }
+
+  function addRow(){
+    const maxDay = Math.max(0, ...rows.map(r=>Number(r.day)||0));
+    const maxWeek = Math.max(1, ...rows.map(r=>Number(r.week)||1));
+    rows.push({day:maxDay+1, week:maxWeek, perfect:"", brian:"", peter:"", josh:"", notes:""});
+    saveRows(rows);
+    buildWeekFilter();
+    renderAll();
+  }
+
+  function reset(){
+    rows = structuredClone(DEFAULT_ROWS);
+    saveRows(rows);
+    buildWeekFilter();
+    renderAll();
+  }
+
+  function exportCSV(){
+    const header = ["day","week","perfect","brian","peter","josh","notes"];
+    const lines = [header.join(",")];
+    for(const r of rows){
+      const row = header.map(k=>{
+        const v = r[k] ?? "";
+        const s = String(v).replaceAll('"','""');
+        return (s.includes(",") || s.includes('"') || s.includes("\n")) ? `"${s}"` : s;
+      }).join(",");
+      lines.push(row);
+    }
+    const blob = new Blob([lines.join("\n")], {type:"text/csv;charset=utf-8"});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "enclose_hay_tracker.csv";
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
+  }
+
+  // ---------------- Excel auto-load + refresh ----------------
+  function setExcelStatus(ok, msg){
+    if(!els.excelStatus) return;
+    els.excelStatus.textContent = msg;
+    els.excelStatus.style.borderColor = ok ? "rgba(34,197,94,.55)" : "rgba(239,68,68,.55)";
+    els.excelStatus.style.background = ok ? "rgba(34,197,94,.10)" : "rgba(239,68,68,.10)";
+  }
+
+  function cleanCell(v){
+    if(v === null || v === undefined) return "";
+    const s = String(v).trim();
+    if(s === "" || s === "*") return "";
+    return v;
+  }
+
+  async function loadExcelFromServer(url = EXCEL_URL){
+    if(typeof XLSX === "undefined"){
+      setExcelStatus(false, "Excel: parser missing");
+      return false;
+    }
+    try{
+      setExcelStatus(false, "Excel: loading…");
+      const res = await fetch(url, {cache:"no-store"});
+      if(!res.ok) throw new Error(`HTTP ${res.status}`);
+
+      const buf = await res.arrayBuffer();
+      const wb = XLSX.read(buf, {type:"array"});
+
+      let sheetName = wb.SheetNames[0];
+      if(SHEET_NAME && wb.SheetNames.includes(SHEET_NAME)) sheetName = SHEET_NAME;
+
+      const ws = wb.Sheets[sheetName];
+      const json = XLSX.utils.sheet_to_json(ws, {defval:""});
+
+      const norm = (s) => String(s || "").trim().toLowerCase();
+      const toNumOrBlank = (v) => {
+        v = cleanCell(v);
+        const s = String(v).trim();
+        if(s === "") return "";
+        const n = Number(s);
+        return Number.isFinite(n) ? n : "";
+      };
+
+      const mapped = json.map((r)=>{
+        const lk = {};
+        for(const k of Object.keys(r)) lk[norm(k)] = cleanCell(r[k]);
+        return {
+          day: toNumOrBlank(lk["day"]),
+          week: toNumOrBlank(lk["week"]),
+          perfect: toNumOrBlank(lk["perfect"]),
+          brian: toNumOrBlank(lk["brian"]),
+          peter: toNumOrBlank(lk["peter"]),
+          josh: toNumOrBlank(lk["josh"]),
+          notes: String(lk["notes"] ?? ""),
+        };
+      }).filter((r)=> (r.day!=="" || r.week!=="" || r.perfect!=="" || r.brian!=="" || r.peter!=="" || r.josh!==""));
+
+      if(!mapped.length){
+        setExcelStatus(false, "Excel: no rows");
+        return false;
+      }
+
+      rows = mapped;
+      saveRows(rows);
+      buildWeekFilter();
+      renderAll();
+
+      setExcelStatus(true, `Excel: connected (${sheetName})`);
+      return true;
+    }catch(err){
+      console.warn("Excel load failed:", err);
+      setExcelStatus(false, "Excel: not found");
+      return false;
+    }
+  }
+
+  function startAutoRefresh(){
+    stopAutoRefresh();
+    autoRefreshTimer = setInterval(()=>loadExcelFromServer(EXCEL_URL), 10000);
+  }
+  function stopAutoRefresh(){
+    if(autoRefreshTimer){ clearInterval(autoRefreshTimer); autoRefreshTimer = null; }
+  }
+
+  // Events
+  els.weekFilter.addEventListener("change", ()=>renderAll());
+  els.addRowBtn.addEventListener("click", addRow);
+  els.resetBtn.addEventListener("click", reset);
+  els.exportBtn.addEventListener("click", exportCSV);
+
+  if(els.refreshExcelBtn){
+    els.refreshExcelBtn.addEventListener("click", ()=>loadExcelFromServer(EXCEL_URL));
+  }
+  if(els.autoRefreshChk){
+    els.autoRefreshChk.checked = localStorage.getItem(AUTOREFRESH_KEY) === "1";
+    if(els.autoRefreshChk.checked) startAutoRefresh();
+
+    els.autoRefreshChk.addEventListener("change", ()=>{
+      localStorage.setItem(AUTOREFRESH_KEY, els.autoRefreshChk.checked ? "1" : "0");
+      if(els.autoRefreshChk.checked) startAutoRefresh();
+      else stopAutoRefresh();
+    });
+  }
+
+  // Init
+  buildWeekFilter();
+  renderAll();
+  loadExcelFromServer(EXCEL_URL);
+</script>
+</body>
+</html>
