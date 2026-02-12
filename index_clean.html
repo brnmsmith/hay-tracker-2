@@ -651,18 +651,20 @@ body.theme-arcade .wrap{ position:relative; z-index:5; }
 <script>
   // --- Seed data from your screenshot ---
   const DEFAULT_ROWS = [
-    {day:32, week:1, perfect:82, brian:77, peter:77, josh:77, notes:""},
-    {day:33, week:1, perfect:44, brian:43, peter:35, josh:21, notes:""},
-    {day:34, week:1, perfect:45, brian:42, peter:44, josh:45, notes:""},
-    {day:35, week:1, perfect:60, brian:35, peter:52, josh:47, notes:""},
-    {day:36, week:2, perfect:58, brian:58, peter:58, josh:46, notes:""},
-    {day:37, week:2, perfect:82, brian:76, peter:76, josh:70, notes:""},
-    {day:38, week:2, perfect:77, brian:77, peter:77, josh:77, notes:""},
-    {day:39, week:2, perfect:94, brian:88, peter:94, josh:92, notes:""},
-    {day:40, week:2, perfect:48, brian:47, peter:48, josh:48, notes:""},
-    {day:41, week:2, perfect:70, brian:68, peter:70, josh:70, notes:""},
-    {day:42, week:3, perfect:55, brian:55, peter:53, josh:54, notes:""},
-    {day:43, week:3, perfect:75, brian:75, peter:75, josh:75, notes:""}
+    {day:32, week:1, perfect:82, brian:77, peter:77, josh:77},
+    {day:33, week:1, perfect:44, brian:43, peter:35, josh:21},
+    {day:34, week:1, perfect:45, brian:42, peter:44, josh:45},
+    {day:35, week:1, perfect:60, brian:35, peter:52, josh:47},
+    {day:36, week:2, perfect:58, brian:58, peter:58, josh:46},
+    {day:37, week:2, perfect:82, brian:76, peter:76, josh:70},
+    {day:38, week:2, perfect:77, brian:77, peter:77, josh:77},
+    {day:39, week:2, perfect:94, brian:88, peter:94, josh:92},
+    {day:40, week:2, perfect:48, brian:47, peter:48, josh:48},
+    {day:41, week:2, perfect:70, brian:68, peter:70, josh:70},
+    {day:42, week:3, perfect:55, brian:55, peter:53, josh:54},
+    {day:43, week:3, perfect:75, brian:75, peter:75, josh:75},
+    {day:44, week:3, perfect:74, brian:74, peter:74, josh:74},
+    {day:45, week:3, perfect:85, brian:84, peter:85, josh:85}
   ];
 
   const STORE_KEY = "enclose_hay_tracker_rows_v1";
@@ -947,7 +949,7 @@ const els = {
     // pick next day number and current max week
     const maxDay = Math.max(0, ...rows.map(r=>Number(r.day)||0));
     const maxWeek = Math.max(1, ...rows.map(r=>Number(r.week)||1));
-    rows.push({day:maxDay+1, week:maxWeek, perfect:"", brian:"", peter:"", josh:"", notes:""});
+    rows.push({day:maxDay+1, week:maxWeek, perfect:"", brian:"", peter:"", josh:""});
     saveRows(rows);
     buildWeekFilter();
     renderAll();
